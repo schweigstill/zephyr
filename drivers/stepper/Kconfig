@@ -18,6 +18,8 @@ config STEPPER_INIT_PRIORITY
 	help
 	  Stepper motor controller initialization priority.
 
-comment "Stepper Motor Controller Drivers"
+comment "Stepper Drivers"
+
+rsource "gpio_stepper/Kconfig"
 
 endif
