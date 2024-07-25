@@ -21,5 +21,6 @@ config STEPPER_INIT_PRIORITY
 comment "Stepper Drivers"
 
 rsource "gpio_stepper/Kconfig"
+rsource "tmc5240/Kconfig"
 
 endif

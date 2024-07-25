@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_subdirectory_ifdef(CONFIG_GPIO_STEPPER gpio_stepper)
+add_subdirectory_ifdef(CONFIG_TMC5240_STEPPER tmc5240)
 
 zephyr_syscall_header(${ZEPHYR_BASE}/include/zephyr/drivers/stepper.h)
 

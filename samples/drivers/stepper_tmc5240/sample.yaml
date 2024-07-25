@@ -1,0 +1,12 @@
+sample:
+  description: Demo for TMC5240
+  name: TMC5240 demo
+tests:
+  sample.drivers.stepper:
+    tags:
+      - drivers
+      - spi
+      - stepper
+    integration_platforms:
+      - rpi_pico
+    depends_on: spi

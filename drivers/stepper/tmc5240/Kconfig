@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: Copyright (c) 2024 Nathan Perry <np@npry.dev>
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+menuconfig TMC5240_STEPPER
+	bool "TMC5240"
+	help
+	  TMC5240 SPI stepper driver.
+
+config TMC5240_STEPPER_DETECT_UNRESPONSIVE
+	bool "Detect unresponsive bus"
+	depends on TMC5240_STEPPER
+	default y
+	help
+	  Report an error if response data heuristically indicates there was a communication
+	  failure on the bus
+
+config TMC5240_STEPPER_SHADOW
+	bool "Enable shadow registers"
+	depends on TMC5240_STEPPER
+	default y
+	help
+	  Optimize SPI I/O by caching register values in a shadow register file.
+
+DT_COMPAT_ADI_TMC2540 := "adi,tmc5240"

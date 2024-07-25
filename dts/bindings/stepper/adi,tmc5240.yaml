@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: Copyright (c) 2024 Nathan Perry <np@npry.dev>
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+description: TMC5240 stepper driver
+
+compatible: "adi,tmc5240"
+
+include:
+  - base.yaml
+  - spi-device.yaml
+
+properties: { }
