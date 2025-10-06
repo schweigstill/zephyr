@@ -29,5 +29,6 @@ comment "Trinamic Stepper Drivers"
 rsource "Kconfig.tmc22xx"
 rsource "Kconfig.tmc50xx"
 rsource "Kconfig.tmc51xx"
+rsource "Kconfig.tmc52xx"
 
 endif # STEPPER_ADI_TMC

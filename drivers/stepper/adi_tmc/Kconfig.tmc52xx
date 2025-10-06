@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Prevas A/S; A. Schweigstill
+# SPDX-License-Identifier: Apache-2.0
+
+config STEPPER_ADI_TMC52XX
+	bool "Activate Trinamic tmc52xx stepper driver"
+	depends on DT_HAS_ADI_TMC52XX_ENABLED && STEPPER_ADI_TMC
+	select STEPPER_ADI_TMC_UART if $(dt_compat_on_bus,$(DT_COMPAT_ADI_TMC52XX),uart)
+	select STEPPER_ADI_TMC_SPI if $(dt_compat_on_bus,$(DT_COMPAT_ADI_TMC52XX),spi)
+	default y
+
+module = TMC52XX
+module-str = tmc52xx
+rsource "Kconfig.tmc_rampgen_template"
