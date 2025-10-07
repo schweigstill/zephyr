@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025 Prevas A/S
+# SPDX-FileCopyrightText: Copyright (c) 2025 A. Schweigstill IT | Embedded Systems
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
@@ -53,3 +54,8 @@ properties:
 
       Hint: µstep velocity v[Hz] µsteps / s v[Hz] = v[52xx] * ( fCLK[Hz]/2 / 2^23 )
             where v[52xx] is the value written to the TMC52XX.
+
+  sleep-gpios:
+    type: phandle-array
+    description: |
+      GPIO pins used to control the SLEEPN/Reset signal of the motor driver.

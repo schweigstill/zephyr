@@ -1,19 +1,20 @@
 /*
  * SPDX-FileCopyrightText: Copyright (c) 2025 Dipak Shetty
+ * SPDX-FileCopyrightText: Copyright (c) 2025 A. Schweigstill IT | Embedded Systems
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <zephyr/logging/log.h>
 
-#include "tmc51xx.h"
+#include "tmc52xx.h"
 #include <adi_tmc_bus.h>
 #include <adi_tmc_uart.h>
 
-#if TMC51XX_BUS_UART
-LOG_MODULE_DECLARE(tmc51xx, CONFIG_STEPPER_LOG_LEVEL);
+#if TMC52XX_BUS_UART
+LOG_MODULE_DECLARE(tmc52xx, CONFIG_STEPPER_LOG_LEVEL);
 
-static int tmc51xx_bus_check_uart(const union tmc_bus *bus, uint8_t comm_type)
+static int tmc52xx_bus_check_uart(const union tmc_bus *bus, uint8_t comm_type)
 {
 	if (comm_type != TMC_COMM_UART) {
 		return -ENOTSUP;
@@ -21,10 +22,10 @@ static int tmc51xx_bus_check_uart(const union tmc_bus *bus, uint8_t comm_type)
 	return device_is_ready(bus->uart) ? 0 : -ENODEV;
 }
 
-static int tmc51xx_reg_write_uart(const struct device *dev, const uint8_t reg_addr,
+static int tmc52xx_reg_write_uart(const struct device *dev, const uint8_t reg_addr,
 				  const uint32_t reg_val)
 {
-	const struct tmc51xx_config *config = dev->config;
+	const struct tmc52xx_config *config = dev->config;
 	int err;
 
 	/* Route to the adi_tmc_uart.h implementation */
@@ -38,10 +39,10 @@ static int tmc51xx_reg_write_uart(const struct device *dev, const uint8_t reg_ad
 	return err;
 }
 
-static int tmc51xx_reg_read_uart(const struct device *dev, const uint8_t reg_addr,
+static int tmc52xx_reg_read_uart(const struct device *dev, const uint8_t reg_addr,
 				 uint32_t *reg_val)
 {
-	const struct tmc51xx_config *config = dev->config;
+	const struct tmc52xx_config *config = dev->config;
 	int err;
 
 	/* Route to the adi_tmc_uart.h implementation */
@@ -55,9 +56,9 @@ static int tmc51xx_reg_read_uart(const struct device *dev, const uint8_t reg_add
 	return err;
 }
 
-const struct tmc_bus_io tmc51xx_uart_bus_io = {
-	.check = tmc51xx_bus_check_uart,
-	.read = tmc51xx_reg_read_uart,
-	.write = tmc51xx_reg_write_uart,
+const struct tmc_bus_io tmc52xx_uart_bus_io = {
+	.check = tmc52xx_bus_check_uart,
+	.read = tmc52xx_reg_read_uart,
+	.write = tmc52xx_reg_write_uart,
 };
-#endif /* TMC51XX_BUS_UART */
+#endif /* TMC52XX_BUS_UART */

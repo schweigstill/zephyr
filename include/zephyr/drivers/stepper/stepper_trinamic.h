@@ -8,6 +8,7 @@
 /*
  * SPDX-FileCopyrightText: Copyright (c) 2024 Carl Zeiss Meditec AG
  * SPDX-FileCopyrightText: Copyright (c) 2025 Prevas A/S
+ * SPDX-FileCopyrightText: Copyright (c) 2025 A. Schweigstill IT | Embedded Systems
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -193,6 +194,15 @@ struct tmc_ramp_generator_data {
 	}
 
 #define TMC_RAMP_DT_SPEC_GET_TMC51XX(node)					\
+	{									\
+		TMC_RAMP_DT_SPEC_GET_COMMON(DT_DRV_INST(node))			\
+		.tpowerdown = DT_INST_PROP(node, tpowerdown),			\
+		.tpwmthrs = DT_INST_PROP(node, tpwmthrs),			\
+		.tcoolthrs = DT_INST_PROP(node, tcoolthrs),			\
+		.thigh = DT_INST_PROP(node, thigh),				\
+	}
+
+#define TMC_RAMP_DT_SPEC_GET_TMC52XX(node)					\
 	{									\
 		TMC_RAMP_DT_SPEC_GET_COMMON(DT_DRV_INST(node))			\
 		.tpowerdown = DT_INST_PROP(node, tpowerdown),			\
