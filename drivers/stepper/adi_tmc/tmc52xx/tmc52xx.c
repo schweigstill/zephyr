@@ -891,8 +891,8 @@ static DEVICE_API(stepper, tmc52xx_api) = {
 		(DT_INST_ON_BUS(inst, spi),							   \
 		(TMC52XX_CONFIG_SPI(inst)),							   \
 		(TMC52XX_CONFIG_UART(inst))),							   \
-		.enable_gpio = GPIO_DT_SPEC_INST_GET(inst, en_gpios),	                           \
-		.sleep_gpio = GPIO_DT_SPEC_INST_GET(inst, sleep_gpios),	                           \
+		.enable_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, en_gpios, {0}),	                           \
+		.sleep_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, sleep_gpios, {0}),	                           \
 		.gconf = ((DT_INST_PROP(inst, en_pwm_mode) << TMC52XX_GCONF_EN_PWM_MODE_SHIFT) |  \
 			   (DT_INST_PROP(inst, test_mode) << TMC52XX_GCONF_TEST_MODE_SHIFT) |      \
 			   (DT_INST_PROP(inst, invert_direction) << TMC52XX_GCONF_SHAFT_SHIFT) |   \
