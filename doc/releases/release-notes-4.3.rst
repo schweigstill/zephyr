@@ -58,6 +58,7 @@ Removed APIs and options
   PSA Crypto API is now the recommended cryptographic library for Zephyr.
 * The legacy pipe object API was removed. Use the new pipe API instead.
 * ``bt_le_set_auto_conn``
+* ``CONFIG_BT_BUF_ACL_RX_COUNT``
 
 Deprecated APIs and options
 ===========================
@@ -208,6 +209,10 @@ New APIs and options
 
 * Networking
 
+  * CoAP
+
+    * :c:struct:`coap_client_response_data`
+
   * Sockets
 
     * :c:func:`zsock_listen` now implements the ``backlog`` parameter support. The TCP server
@@ -247,6 +252,11 @@ New APIs and options
       * :kconfig:option:`CONFIG_SHELL_MQTT_CONNECT_TIMEOUT_MS`
       * :kconfig:option:`CONFIG_SHELL_MQTT_WORK_DELAY_MS`
       * :kconfig:option:`CONFIG_SHELL_MQTT_LISTEN_TIMEOUT_MS`
+
+* State Machine Framework
+
+  * :c:func:`smf_get_current_leaf_state`
+  * :c:func:`smf_get_current_executing_state`
 
 * Storage
 
