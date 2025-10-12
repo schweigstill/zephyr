@@ -81,7 +81,7 @@ Comparator
 MFD
 ===
 
-* Driver suppor for AXP2101 has been separated from the AXP192 one. As a consequence the
+* Driver support for AXP2101 has been separated from the AXP192 one. As a consequence the
   kconfig symbol ``MFD_AXP192_AXP2101`` is removed. :kconfig:option:`MFD_AXP192` is now to be
   used for AXP192 device while :kconfig:option:`MFD_AXP2101` for the AXP2101 one.
 
@@ -150,6 +150,9 @@ Bluetooth Controller
     * :kconfig:option:`CONFIG_BT_CTRL_ADV_ADI_IN_SCAN_RSP` to
       :kconfig:option:`CONFIG_BT_CTLR_ADV_ADI_IN_SCAN_RSP`
 
+   * :c:func:`bt_ctlr_set_public_addr` is deprecated. To set the public Bluetooth device address,
+     sending a vendor specific HCI command with :c:struct:`bt_hci_cp_vs_write_bd_addr` can be used.
+
 .. zephyr-keep-sorted-start re(^\w)
 
 Bluetooth Audio
@@ -206,6 +209,11 @@ Power management
   longer enable them directly, instead, enable or disable the "suspend-to-ram" power states
   in the devicetree.
 
+* For the NXP RW61x, the devicetree property ``exit-latency-us`` has been updated to reflect more
+  accurate, measured wake-up times. For applications utilizing Standby mode (PM3), this update and
+  an increase to the ``min-residency-us`` devicetree property may influence how the system
+  transitions between power modes. In some cases, this could lead to changes in power consumption.
+
 Networking
 **********
 
@@ -250,6 +258,12 @@ PTP Clock
   Now PI servo is introduced in both PTP and gPTP, and this API function is changed to use for rate
   ratio adjusting based on nominal frequency. Drivers implementing :c:func:`ptp_clock_rate_adjust`
   should be adjusted to account for the new behavior.
+
+Video
+*****
+
+* The ``min_line_count`` and ``max_line_count`` fields have been removed from :c:struct:`video_caps`.
+  Application should base on the new :c:member:`video_format.size` to allocate buffers.
 
 Other subsystems
 ****************
@@ -308,6 +322,9 @@ Shell
   and :kconfig:option:`SHELL_MQTT_TOPIC_TX_ID`. This allows keeping the previous topics for backward
   compatibility.
   (:github:`92677`).
+
+* The :c:func:`shell_set_bypass` now requires a user data pointer to be passed. And accordingly the
+  :c:type:`shell_bypass_cb_t` now has a user data argument.
 
 .. zephyr-keep-sorted-stop
 
