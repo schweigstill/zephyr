@@ -87,6 +87,11 @@
 					status = "disabled";
 				};
 			};
+
+			rcc_rst: reset-controller {
+				compatible = "sifli,sf32lb-rcc-rctl";
+				#reset-cells = <1>;
+			};
 		};
 
 		pinctrl: pinctrl@50003000 {
@@ -133,6 +138,29 @@
 			compatible = "sifli,sf32lb-usart";
 			reg = <0x50084000 0x400>;
 			interrupts = <59 0>;
+			status = "disabled";
+		};
+
+		usart2: serial@50085000 {
+			compatible = "sifli,sf32lb-usart";
+			reg = <0x50085000 0x400>;
+			interrupts = <74 0>;
+			clocks = <&rcc_clk SF32LB52X_CLOCK_USART2>;
+			status = "disabled";
+		};
+
+		usart3: serial@50086000 {
+			compatible = "sifli,sf32lb-usart";
+			reg = <0x50086000 0x400>;
+			interrupts = <95 0>;
+			clocks = <&rcc_clk SF32LB52X_CLOCK_USART3>;
+			status = "disabled";
+		};
+
+		wdt: watchdog@50094000 {
+			compatible = "sifli,sf32lb-wdt";
+			reg = <0x50094000 0x1000>;
+			interrupts = <26 0>;
 			status = "disabled";
 		};
 

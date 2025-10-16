@@ -1077,9 +1077,16 @@ static void hci_disconn_complete(struct net_buf *buf)
 		 * If only for one connection session bond was set, clear keys
 		 * database row for this connection.
 		 */
-		if (conn->type == BT_CONN_TYPE_BR && conn->br.link_key != NULL &&
-		    atomic_test_and_clear_bit(conn->flags, BT_CONN_BR_NOBOND)) {
-			bt_keys_link_key_clear(conn->br.link_key);
+		if (conn->type == BT_CONN_TYPE_BR && conn->br.link_key != NULL) {
+			/*
+			 * If the connection link is paired but not bond, remove
+			 * the link key upon disconnection.
+			 */
+			if (atomic_test_and_clear_bit(conn->flags, BT_CONN_BR_NOBOND)) {
+				bt_keys_link_key_clear(conn->br.link_key);
+			}
+
+			conn->br.link_key->enc_key_size = 0;
 		}
 #endif
 		bt_conn_unref(conn);
@@ -4650,6 +4657,10 @@ int bt_disable(void)
 	bt_periodic_sync_disable();
 #endif /* CONFIG_BT_PER_ADV_SYNC */
 
+	if (IS_ENABLED(CONFIG_BT_ISO)) {
+		bt_iso_reset();
+	}
+
 #if defined(CONFIG_BT_CONN)
 	if (IS_ENABLED(CONFIG_BT_SMP)) {
 		bt_pub_key_hci_disrupted();
@@ -4703,10 +4714,6 @@ int bt_disable(void)
 
 	/* If random address was set up - clear it */
 	bt_addr_le_copy(&bt_dev.random_addr, BT_ADDR_LE_ANY);
-
-	if (IS_ENABLED(CONFIG_BT_ISO)) {
-		bt_iso_reset();
-	}
 
 	bt_monitor_send(BT_MONITOR_CLOSE_INDEX, NULL, 0);
 
