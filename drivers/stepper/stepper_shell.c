@@ -81,6 +81,8 @@ static bool device_is_stepper(const struct device *dev)
 static const struct stepper_direction_map stepper_direction_map[] = {
 	STEPPER_DIRECTION_MAP_ENTRY("positive", STEPPER_DIRECTION_POSITIVE),
 	STEPPER_DIRECTION_MAP_ENTRY("negative", STEPPER_DIRECTION_NEGATIVE),
+	STEPPER_DIRECTION_MAP_ENTRY("p",        STEPPER_DIRECTION_POSITIVE),
+	STEPPER_DIRECTION_MAP_ENTRY("n",        STEPPER_DIRECTION_NEGATIVE),
 };
 
 static const struct stepper_microstep_map stepper_microstep_map[] = {

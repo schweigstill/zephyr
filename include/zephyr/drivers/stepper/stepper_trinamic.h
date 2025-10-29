@@ -234,6 +234,8 @@ int tmc50xx_stepper_set_ramp(const struct device *dev,
  * @retval 0 Success
  */
 int tmc50xx_stepper_set_max_velocity(const struct device *dev, uint32_t velocity);
+int tmc51xx_stepper_set_max_velocity(const struct device *dev, uint32_t velocity);
+int tmc52xx_stepper_set_max_velocity(const struct device *dev, uint32_t velocity);
 
 /**
  * @}

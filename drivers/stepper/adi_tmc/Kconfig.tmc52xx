@@ -8,6 +8,22 @@ config STEPPER_ADI_TMC52XX
 	select STEPPER_ADI_TMC_SPI if $(dt_compat_on_bus,$(DT_COMPAT_ADI_TMC52XX),spi)
 	default y
 
+config STEPPER_ADI_TMC52XX_DETECT_UNRESPONSIVE
+	bool "Detect unresponsive bus"
+	depends on STEPPER_ADI_TMC52XX
+	default y
+	help
+	  Report an error if response data heuristically indicates there was a communication
+	  failure on the bus
+
+config STEPPER_ADI_TMC52XX_SHADOW
+	bool "Enable shadow registers"
+	depends on STEPPER_ADI_TMC52XX
+	default y
+	help
+	  Optimize SPI I/O by caching register values in a shadow register file.
+
+
 module = TMC52XX
 module-str = tmc52xx
 rsource "Kconfig.tmc_rampgen_template"
