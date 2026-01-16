@@ -8,6 +8,7 @@
 /*
  * SPDX-FileCopyrightText: Copyright (c) 2024 Carl Zeiss Meditec AG
  * SPDX-FileCopyrightText: Copyright (c) 2025 Prevas A/S
+ * SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -50,6 +51,9 @@ struct tmc_stallguard_settings {
 	uint32_t sg_threshold_velocity;
 };
 
+/* TMC52XX specific */
+
+
 /**
  * @brief Trinamic Stepper Ramp Generator data
  */
@@ -77,6 +81,7 @@ struct tmc_ramp_generator_data {
 			uint32_t tcoolthrs;
 			uint32_t thigh;
 		};
+		/* TMC52XX specific */
 	};
 };
 
