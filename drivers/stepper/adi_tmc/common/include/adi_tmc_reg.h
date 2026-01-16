@@ -8,6 +8,7 @@
 /*
  * SPDX-FileCopyrightText: Copyright (c) 2024 Carl Zeiss Meditec AG
  * SPDX-FileCopyrightText: Copyright (c) 2025 Prevas A/S
+ * SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -18,8 +19,8 @@
 extern "C" {
 #endif
 
-/** Common Registers for TMC50XX and TMC51XX */
-#if defined(CONFIG_STEPPER_ADI_TMC50XX) || defined(CONFIG_STEPPER_ADI_TMC51XX)
+/** Common Registers for TMC50XX TMC51XX and TMC52XX */
+#if defined(CONFIG_STEPPER_ADI_TMC50XX) || defined(CONFIG_STEPPER_ADI_TMC51XX) || defined(CONFIG_STEPPER_ADI_TMC52XX)
 
 #define TMC5XXX_WRITE_BIT        0x80U
 #define TMC5XXX_ADDRESS_MASK     0x7FU
@@ -183,6 +184,10 @@ extern "C" {
 #define TMC51XX_DRVSTATUS	TMC50XX_DRVSTATUS(0)
 
 #endif /* CONFIG_STEPPER_ADI_TMC51XX */
+
+#ifdef CONFIG_STEPPER_ADI_TMC52XX
+
+#endif /* CONFIG_STEPPER_ADI_TMC52XX */
 
 /**
  * @}

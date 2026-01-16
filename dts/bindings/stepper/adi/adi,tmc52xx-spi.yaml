@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025 Dipak Shetty
+# SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
-  Analog Devices TMC51XX Stepper Motor Controller (SPI mode)
+  Analog Devices TMC52XX Stepper Motor Controller (SPI mode)
 
   Example:
 
     &spi0 {
-        tmc51xx: tmc51xx@0 {
-            compatible = "adi,tmc51xx";
+        tmc52xx: tmc52xx@0 {
+            compatible = "adi,tmc52xx";
             reg = <0>;
             spi-max-frequency = <DT_FREQ_M(8)>;
             diag0-gpios = <&gpio0 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; /* Diag0 pin */
@@ -17,17 +18,17 @@ description: |
             clock-frequency = <DT_FREQ_M(16)>; /* Internal/External Clock frequency */
             en-pwm-mode, shaft; /* ADI TMC Global configuration flags */
 
-            tmc51xx_1_stepper_driver: tmc51xx_1_stepper_driver {
-              compatible = "adi,tmc51xx-stepper-drv";
+            tmc52xx_1_stepper_driver: tmc52xx_1_stepper_driver {
+              compatible = "adi,tmc52xx-stepper-drv";
               micro-step-res = <256>;
-              /* ADI TMC stallguard settings specific to TMC51XX */
+              /* ADI TMC stallguard settings specific to TMC52XX */
               stallguard2-threshold=<9>;
             };
 
-            tmc51xx_1_motion_controller: tmc51xx_1_motion_controller {
-              compatible = "adi,tmc51xx-stepper";
+            tmc52xx_1_motion_controller: tmc52xx_1_motion_controller {
+              compatible = "adi,tmc52xx-stepper";
 
-              /* ADI TMC stallguard settings specific to TMC5160 */
+              /* ADI TMC stallguard settings specific to TMC5260 */
               activate-stallguard2;
               stallguard-velocity-check-interval-ms = <100>;
               stallguard-threshold-velocity = <50000>;
@@ -52,9 +53,9 @@ description: |
         };
     };
 
-compatible: "adi,tmc51xx"
+compatible: "adi,tmc52xx"
 
-include: [spi-device.yaml, "adi,tmc51xx-base.yaml"]
+include: [spi-device.yaml, "adi,tmc52xx-base.yaml"]
 
 properties:
   reg:
