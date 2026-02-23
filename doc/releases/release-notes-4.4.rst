@@ -85,6 +85,21 @@ Deprecated APIs and options
       :c:member:`bt_conn_le_info.interval_us` instead. Note that the units have changed:
       ``interval`` was in units of 1.25 milliseconds, while ``interval_us`` is in microseconds.
 
+* I2S
+
+  * The following macros have been deprecated and are replaced with equivalent macros whose names
+    are aligned with the `latest revision of the I2S specification`_.
+
+    * :c:macro:`I2S_OPT_BIT_CLK_MASTER` -> :c:macro:`I2S_OPT_BIT_CLK_CONTROLLER`
+    * :c:macro:`I2S_OPT_FRAME_CLK_MASTER` -> :c:macro:`I2S_OPT_FRAME_CLK_CONTROLLER`
+    * :c:macro:`I2S_OPT_BIT_CLK_SLAVE` -> :c:macro:`I2S_OPT_BIT_CLK_TARGET`
+    * :c:macro:`I2S_OPT_FRAME_CLK_SLAVE` -> :c:macro:`I2S_OPT_FRAME_CLK_TARGET`
+
+.. _latest revision of the I2S specification: https://www.nxp.com/docs/en/user-manual/UM11732.pdf
+
+* POSIX
+
+  * :kconfig:option:`CONFIG_XOPEN_STREAMS` was deprecated. Instead, use :kconfig:option:`CONFIG_XSI_STREAMS`
 * Sensors
 
   * NXP
@@ -101,6 +116,15 @@ New APIs and options
   instead.
 
 .. zephyr-keep-sorted-start re(^\* \w)
+
+* ADC
+
+  * :c:macro:`ADC_DT_SPEC_GET_BY_IDX_OR`
+  * :c:macro:`ADC_DT_SPEC_GET_BY_NAME_OR`
+  * :c:macro:`ADC_DT_SPEC_GET_OR`
+  * :c:macro:`ADC_DT_SPEC_INST_GET_BY_IDX_OR`
+  * :c:macro:`ADC_DT_SPEC_INST_GET_BY_NAME_OR`
+  * :c:macro:`ADC_DT_SPEC_INST_GET_OR`
 
 * Architectures
 
@@ -119,10 +143,13 @@ New APIs and options
   * Audio
 
     * :c:func:`bt_bap_ep_get_conn`
+    * :c:member:`bt_ccp_call_control_client_cb.user_data`
+    * :kconfig:option:`CONFIG_BT_TBS_MAX_FRIENDLY_NAME_LENGTH`
 
   * Host
 
     * :c:func:`bt_gatt_cb_unregister` Added an API to unregister GATT callback handlers.
+    * :c:func:`bt_le_per_adv_sync_cb_unregister`
 
   * Mesh
 
@@ -140,10 +167,29 @@ New APIs and options
 
 * Build system
 
+  * Added :ref:`slot1-partition <snippet-slot1-partition>` snippet.
+
   * Sysbuild
 
     * Added :kconfig:option:`SB_CONFIG_MERGED_HEX_FILES` which allows generating
       :ref:`merged hex files <sysbuild_merged_hex_files>`.
+
+    * Added experimental ``ExternalZephyrVariantProject_Add()`` sysbuild CMake function which
+      allows for adding :ref:`variant images<sysbuild_zephyr_application>` to projects which are
+      based on existing images in a build.
+
+    * Added :kconfig:option:`SB_CONFIG_MCUBOOT_DIRECT_XIP_GENERATE_VARIANT` which allows for
+      generating slot 1 images automatically in sysbuild projects when using MCUboot in
+      direct-xip mode.
+
+* CPUFreq
+
+  * :kconfig:option:`CONFIG_CPU_FREQ_POLICY_PRESSURE`
+
+* Display
+
+  * :kconfig:option:`SSD1325_DEFAULT_CONTRAST`
+  * :kconfig:option:`SSD1325_CONV_BUFFER_LINES`
 
 * Ethernet
 
@@ -165,11 +211,29 @@ New APIs and options
   * :dtcompatible:`jedec,mspi-nor` now allows MSPI configuration of read, write and
     control commands separately via devicetree.
 
+* Haptics
+
+  * Added error callback to API
+
+    * :c:enum:`haptics_error_type` to enumerate common fault conditions in haptics devices.
+    * :c:type:`haptics_error_callback_t` to provide function prototype for error callbacks.
+    * :c:func:`haptics_register_error_callback` to register an error callback with a driver.
+
 * IPM
 
   * IPM callbacks for the mailbox backend now correctly handle signal-only mailbox
     mailbox usage. Applications should be prepared to receive a NULL payload pointer
     in IPM callbacks when no data buffer is provided by the mailbox.
+
+* Management
+
+  * MCUmgr
+
+    * :kconfig:option:`CONFIG_UART_MCUMGR_RAW_PROTOCOL`,
+      :kconfig:option:`CONFIG_MCUMGR_TRANSPORT_RAW_UART`,
+      :kconfig:option:`CONFIG_MCUMGR_TRANSPORT_RAW_UART_INPUT_TIMEOUT`,
+      :kconfig:option:`CONFIG_MCUMGR_TRANSPORT_RAW_UART_INPUT_TIMEOUT_TIME_MS` see
+      :ref:`raw UART MCUmgr SMP transport <mcumgr_smp_transport_raw_uart>` for details.
 
 * Modem
 
@@ -188,6 +252,17 @@ New APIs and options
   * Wi-Fi
 
     * Add support for Wi-Fi Direct (P2P) mode.
+
+* OTP
+
+  * New OTP driver API providing means to provision (:c:func:`otp_program()`) and
+    read (:c:func:`otp_read()`) :abbr:`OTP(One Time Programmable)` memory devices
+    (:github:`101292`). OTP devices can also be accessed through the
+    :ref:`Non-Volatile Memory (NVMEM)<nvmem>` subsystem. Available options are:
+
+    * :kconfig:option:`CONFIG_OTP`
+    * :kconfig:option:`CONFIG_OTP_PROGRAM`
+    * :kconfig:option:`CONFIG_OTP_INIT_PRIORITY`
 
 * PWM
 
@@ -211,6 +286,10 @@ New APIs and options
   * :kconfig:option:`CONFIG_SETTINGS_SAVE_SINGLE_SUBTREE_WITHOUT_MODIFICATION`
   * :kconfig:option:`CONFIG_SETTINGS_SAVE_SINGLE_SUBTREE_WITHOUT_MODIFICATION_VALUE_SIZE`
 
+* Shell
+
+  * :c:func:`shell_readline` for :ref:`user input <shell-readline>`
+
 * Sys
 
   * :c:macro:`COND_CASE_1`
@@ -218,6 +297,19 @@ New APIs and options
 * Timeutil
 
   * :kconfig:option:`CONFIG_TIMEUTIL_APPLY_SKEW`
+
+* Utilities
+
+  * :abbr:`COBS (Consistent Overhead Byte Stuffing)` streaming support
+
+    * :c:struct:`cobs_decoder`
+    * :c:func:`cobs_decoder_init`
+    * :c:func:`cobs_decoder_write`
+    * :c:func:`cobs_decoder_close`
+    * :c:struct:`cobs_encoder`
+    * :c:func:`cobs_encoder_init`
+    * :c:func:`cobs_encoder_write`
+    * :c:func:`cobs_encoder_close`
 
 * Video
 
@@ -263,10 +355,23 @@ New Drivers
   * :dtcompatible:`radio-fem-two-ctrl-pins` (renamed from ``generic-fem-two-ctrl-pins``)
   * :dtcompatible:`radio-gpio-coex` (renamed from ``gpio-radio-coex``)
 
+* Display
+
+  * :dtcompatible:`solomon,ssd1325`
+
+* OTP
+
+  * Added new stm32 BSEC driver that provides means to program and read OTP fuses
+    (:dtcompatible:`st,stm32-bsec`). (:github:`102403`)
+  * Added SiFli SF32LB eFuse OTP driver (:dtcompatible:`sifli,sf32lb-efuse`).
+    (:github:`101926`)
+  * :dtcompatible:`nxp,ocotp` (:github:`102567` & :github:`103089`)
+
 New Samples
 ***********
 
 * :zephyr:code-sample:`ble_peripheral_ans`
+* :zephyr:code-sample:`cpu_freq_pressure`
 
 ..
   Same as above, this will also be recomputed at the time of the release.
@@ -298,6 +403,9 @@ Other notable changes
 
   * https://trustedfirmware-m.readthedocs.io/en/tf-mv2.2.2/releases/2.2.1.html
   * https://trustedfirmware-m.readthedocs.io/en/tf-mv2.2.2/releases/2.2.2.html
+
+* NXP SoC DTSI files have been reorganized by moving them into family-specific
+  subdirectories under ``dts/arm/nxp``.
 
 ..
   Any more descriptive subsystem or driver changes. Do you really want to write

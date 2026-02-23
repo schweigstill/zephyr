@@ -61,7 +61,7 @@ LOG_MODULE_REGISTER(eth_xmc4xxx);
 #define IS_TIMESTAMP_AVAILABLE_RX(desc) (((desc)->status & ETH_MAC_DMA_RDES0_TSA) != 0)
 #define IS_TIMESTAMP_AVAILABLE_TX(desc) (((desc)->status & ETH_MAC_DMA_TDES0_TTSS) != 0)
 
-#define TOTAL_FRAME_LENGTH(desc) (FIELD_GET(ETH_MAC_DMA_RDES0_FL, (desc)->status) - 4)
+#define TOTAL_FRAME_LENGTH(desc) (FIELD_GET(ETH_MAC_DMA_RDES0_FL, (desc)->status))
 
 #define ETH_STATUS_ERROR_TRANSMIT_EVENTS                                                           \
 	(XMC_ETH_MAC_EVENT_BUS_ERROR | XMC_ETH_MAC_EVENT_TRANSMIT_JABBER_TIMEOUT |                 \
@@ -228,6 +228,138 @@ static inline void eth_xmc4xxx_trigger_dma_rx(ETH_GLOBAL_TypeDef *regs)
 	regs->RECEIVE_POLL_DEMAND = 0U;
 }
 
+static inline void pkt_hexdump(struct net_pkt *pkt, const char *str)
+{
+	struct net_buf *buf = pkt->buffer;
+
+	while (buf) {
+		LOG_HEXDUMP_DBG(buf->data, buf->len, str);
+		buf = buf->frags;
+	}
+}
+
+/* Clears the checksum field of an ICMPv4 packet. */
+static int eth_xmc4xxx_clear_checksum_icmpv4(struct net_pkt *pkt)
+{
+	NET_PKT_DATA_ACCESS_DEFINE(icmpv4_access, struct net_icmp_hdr);
+	struct net_icmp_hdr *icmp_hdr;
+
+	if (IS_ENABLED(CONFIG_NET_IPV4_HDR_OPTIONS)) {
+		if (net_pkt_skip(pkt, net_pkt_ipv4_opts_len(pkt))) {
+			return -ENOBUFS;
+		}
+	}
+
+	icmp_hdr = (struct net_icmp_hdr *)net_pkt_get_data(pkt, &icmpv4_access);
+	if (!icmp_hdr) {
+		return -ENOBUFS;
+	}
+
+	icmp_hdr->chksum = 0;
+	net_pkt_set_chksum_done(pkt, true);
+
+	return net_pkt_set_data(pkt, &icmpv4_access);
+}
+
+/* Clears the checksum value in packets that will go through checksum
+ * offloading.
+ */
+static int eth_xmc4xxx_clear_checksum(struct net_pkt *pkt)
+{
+	int ret = 0;
+	uint16_t p_type = 0xFFFF;
+	uint8_t next_header = 0xFF;
+	struct net_eth_hdr *eth_hdr;
+	struct net_pkt_cursor backup;
+	bool overwrite;
+	const char *msg = NULL;
+	const char *msg_does_not_apply = "<does not apply>";
+	const char *p_type_str = msg_does_not_apply;
+	const char *next_header_str = msg_does_not_apply;
+	const char *msg_error_skipping_pkt = "Error skipping pkt";
+
+	overwrite = net_pkt_is_being_overwritten(pkt);
+	net_pkt_cursor_backup(pkt, &backup);
+	net_pkt_cursor_init(pkt);
+	net_pkt_set_overwrite(pkt, true);
+	eth_hdr = NET_ETH_HDR(pkt);
+	ret = net_pkt_skip(pkt, sizeof(struct net_eth_hdr));
+	if (ret) {
+		msg = msg_error_skipping_pkt;
+		goto end;
+	}
+	p_type = ntohs(eth_hdr->type);
+	switch (p_type) {
+	case NET_ETH_PTYPE_IP: {
+		NET_PKT_DATA_ACCESS_DEFINE(ip_access, struct net_ipv4_hdr);
+		struct net_ipv4_hdr *ip_hdr;
+
+		p_type_str = "IPv4";
+		ip_hdr = (struct net_ipv4_hdr *)net_pkt_get_data(pkt, &ip_access);
+		next_header = ip_hdr->proto;
+		ret = net_pkt_skip(pkt, sizeof(struct net_ipv4_hdr));
+		if (ret) {
+			msg = msg_error_skipping_pkt;
+			goto end;
+		}
+
+		break;
+	}
+	case NET_ETH_PTYPE_IPV6: {
+		NET_PKT_DATA_ACCESS_DEFINE(ip_access, struct net_ipv6_hdr);
+		struct net_ipv6_hdr *ip_hdr;
+
+		p_type_str = "IPv6";
+		ip_hdr = (struct net_ipv6_hdr *)net_pkt_get_data(pkt, &ip_access);
+		next_header = ip_hdr->nexthdr;
+		ret = net_pkt_skip(pkt, sizeof(struct net_ipv6_hdr));
+		if (ret) {
+			msg = msg_error_skipping_pkt;
+			goto end;
+		}
+
+		break;
+	}
+	case NET_ETH_PTYPE_ARP:
+		p_type_str = "ARP";
+		goto end;
+	default:
+		p_type_str = "Unknown";
+		msg = "Unknown protocol type";
+		goto end;
+	}
+
+	switch (next_header) {
+	case IPPROTO_TCP:
+		next_header_str = "TCP";
+		break;
+	case IPPROTO_UDP:
+		next_header_str = "UDP";
+		break;
+	case IPPROTO_ICMP:
+		next_header_str = "ICMPv4";
+		ret = eth_xmc4xxx_clear_checksum_icmpv4(pkt);
+		break;
+	case IPPROTO_ICMPV6:
+		next_header_str = "ICMPv6";
+		break;
+	default:
+		next_header_str = "Unknown";
+		msg = "Unknown next header";
+		break;
+	}
+
+end:
+	net_pkt_cursor_restore(pkt, &backup);
+	net_pkt_set_overwrite(pkt, overwrite);
+	if (msg) {
+		LOG_DBG("p_type = 0x%04x (%s), next_header = 0x%02x (%s)", /**/
+			p_type, p_type_str, next_header, next_header_str);
+		pkt_hexdump(pkt, msg);
+	}
+	return ret;
+}
+
 static int eth_xmc4xxx_send(const struct device *dev, struct net_pkt *pkt)
 {
 	struct eth_xmc4xxx_data *dev_data = dev->data;
@@ -338,6 +470,23 @@ static int eth_xmc4xxx_send(const struct device *dev, struct net_pkt *pkt)
 		return -EIO;
 	}
 
+	/* Due to checksum offloading, the checksum field must be zero before
+	 * sending the packet to the ethernet controller, otherwise the computed
+	 * checksum will be incorrect.
+	 *
+	 * If the packet is bridged, it already has the correct checksum in
+	 * place, which will cause the automatically computed checksum to
+	 * incorrectly become zero.
+	 *
+	 * Here we give bridged packets the special attention they need.
+	 */
+	if (net_pkt_is_l2_bridged(pkt)) {
+		ret = eth_xmc4xxx_clear_checksum(pkt);
+		if (ret) {
+			return ret;
+		}
+	}
+
 	unsigned int key = irq_lock();
 
 	/* label last dma descriptor as last segment and trigger interrupt on last segment */
@@ -366,10 +515,11 @@ static struct net_pkt *eth_xmc4xxx_rx_pkt(const struct device *dev)
 	bool eof_found = false;
 	uint16_t tail;
 	XMC_ETH_MAC_DMA_DESC_t *dma_desc;
-	int num_frags = 0;
 	uint16_t frame_end_index;
-	struct net_buf *frag, *last_frag = NULL;
+	struct net_buf *frag, *prev_frag = NULL;
+	uint16_t remaining_length = 0;
 
+	/* tail is the index in the circular buffer of DMA descriptors */
 	tail = dev_data->dma_desc_rx_tail;
 	dma_desc = &rx_dma_desc[tail];
 
@@ -383,50 +533,88 @@ static struct net_pkt *eth_xmc4xxx_rx_pkt(const struct device *dev)
 		return NULL;
 	}
 
+	/* Search for the end of frame descriptor and get the total
+	 * frame length.
+	 */
 	while (!IS_OWNED_BY_DMA_RX(dma_desc)) {
 		eof_found = IS_END_OF_FRAME_RX(dma_desc);
-		num_frags++;
 		if (eof_found) {
+			remaining_length = TOTAL_FRAME_LENGTH(dma_desc);
 			break;
 		}
-
 		MODULO_INC_RX(tail);
-
 		if (tail == dev_data->dma_desc_rx_tail) {
-			/* wrapped */
+			/* We wrapped around the circular buffer, came back to
+			 * the starting point, and still did not find the EOF.
+			 * We could return here, but it is safer to do so after
+			 * the loop.
+			 */
 			break;
 		}
-
 		dma_desc = &rx_dma_desc[tail];
 	}
-
 	if (!eof_found) {
 		return NULL;
 	}
 
+	/* Save the index of the last frame */
 	frame_end_index = tail;
 
+	/* The DMA engine performs an extra 4 bytes transfer
+	 * corresponding to the Receive Status Word, which is sent
+	 * along the data after the end of the frame (Ref: XMC4500
+	 * Reference Manual, 15.2.2.2 Receive Path, page 15-25). For
+	 * this reason, it is necessary to subtract four from the
+	 * total frame length. The incorrect handling of this
+	 * difference was the cause of a subtle bug, in which packets
+	 * with length 125, 126 and 127 were silently dropped upon
+	 * reception.
+	 */
+	remaining_length -= 4;
+
+	/* Allocate the new fresh packet to receive the data. */
 	pkt = net_pkt_rx_alloc(K_NO_WAIT);
-	if (pkt == NULL) {
+	if (!pkt) {
 #ifdef CONFIG_NET_STATISTICS_ETHERNET
 		dev_data->stats.errors.rx++;
 		dev_data->stats.error_details.rx_no_buffer_count++;
 #endif
 		LOG_DBG("Net packet allocation error");
-		/* continue because we still need to read out the packet */
+		/* continue because we still need to read out the packet. */
 	}
 
+	/* In this loop, the following actions are taken:
+	 *
+	 * 1 - If a packet has been successfully allocated, retrieve the fresh
+	 *     fragment from the DMA descriptor and substitute it with a new one
+	 *     allocated from the pool.
+	 *
+	 * 2 - Link each retrieved fragment in a list in the newly allocated
+	 *     packet.
+	 *
+	 * 3 - Prepare the DMA descriptor for a new DMA round.
+	 *
+	 * It is imperative that this loop is not interrupted until all DMA
+	 * descriptors have been sent back to DMA ownership.
+	 */
+	/* Restart the DMA descriptor pointer */
 	tail = dev_data->dma_desc_rx_tail;
 	dma_desc = &rx_dma_desc[tail];
 	for (;;) {
-		if (pkt != NULL) {
-			uint16_t frag_len = CONFIG_NET_BUF_DATA_SIZE;
+		if (pkt) {
+			uint16_t fragment_length;
 
-			frag = dev_data->rx_frag_list[tail];
+			/* Calculate this fragment's length and update the
+			 * remaining length.
+			 */
+			if (remaining_length > CONFIG_NET_BUF_DATA_SIZE) {
+				fragment_length = CONFIG_NET_BUF_DATA_SIZE;
+				remaining_length -= CONFIG_NET_BUF_DATA_SIZE;
+			} else {
+				fragment_length = remaining_length;
+				remaining_length = 0;
+			}
 			if (tail == frame_end_index) {
-				frag_len = TOTAL_FRAME_LENGTH(dma_desc) -
-					   CONFIG_NET_BUF_DATA_SIZE * (num_frags - 1);
-
 				if (IS_TIMESTAMP_AVAILABLE_RX(dma_desc)) {
 					struct net_ptp_time timestamp = {
 						.second = dma_desc->time_stamp_seconds,
@@ -436,46 +624,72 @@ static struct net_pkt *eth_xmc4xxx_rx_pkt(const struct device *dev)
 					net_pkt_set_priority(pkt, NET_PRIORITY_CA);
 				}
 			}
-
+			/* This fragment has the fresh DMA data */
+			frag = dev_data->rx_frag_list[tail];
+			/* Due to the minus four above, the fragment length can
+			 * become zero before the last fragment is processed.
+			 */
+			if (!fragment_length) {
+				/* No need to worry about fragment substitution
+				 * for this fragment, just reset it and prepare
+				 * the DMA descriptor.
+				 */
+				net_buf_reset(frag);
+				goto prepare_dma_descriptor;
+			}
+			/* Allocate a new net fragment to substitute the current
+			 * one on the current DMA descriptor.
+			 */
 			new_frag = net_pkt_get_frag(pkt, CONFIG_NET_BUF_DATA_SIZE, K_NO_WAIT);
-			if (new_frag == NULL) {
+			if (!new_frag) {
 #ifdef CONFIG_NET_STATISTICS_ETHERNET
 				dev_data->stats.errors.rx++;
 				dev_data->stats.error_details.rx_buf_alloc_failed++;
 #endif
-				LOG_DBG("Frag allocation error. Increase CONFIG_NET_BUF_RX_COUNT.");
 				net_pkt_unref(pkt);
 				pkt = NULL;
+				LOG_DBG("Frag allocation error. Increase CONFIG_NET_BUF_RX_COUNT.");
 			} else {
-				net_buf_add(frag, frag_len);
-				if (!last_frag) {
+				/* Sets the received fragment length */
+				net_buf_add(frag, fragment_length);
+				if (!prev_frag) {
+					/* The first fragment goes to the
+					 * packet.
+					 */
 					net_pkt_frag_insert(pkt, frag);
 				} else {
-					net_buf_frag_insert(last_frag, frag);
+					/* Other fragments get added to the
+					 * previous fragment.
+					 */
+					net_buf_frag_insert(prev_frag, frag);
 				}
-
-				last_frag = frag;
-				frag = new_frag;
-				dev_data->rx_frag_list[tail] = frag;
+				prev_frag = frag;
+				dev_data->rx_frag_list[tail] = new_frag;
 			}
 		}
 
+prepare_dma_descriptor:
+		/* Prepare the current DMA descriptor for the next reception. */
 		dma_desc->buffer1 = (uint32_t)dev_data->rx_frag_list[tail]->data;
 		dma_desc->length = dev_data->rx_frag_list[tail]->size |
 				   ETH_RX_DMA_DESC_SECOND_ADDR_CHAINED_MASK;
 		dma_desc->status = ETH_MAC_DMA_RDES0_OWN;
 
 		if (tail == frame_end_index) {
+			/* Time to leave the loop. */
 			break;
 		}
-
 		MODULO_INC_RX(tail);
 		dma_desc = &rx_dma_desc[tail];
 	}
-
 	MODULO_INC_RX(tail);
+
+	/* Leave the device tail index pointing to the next DMA descriptor the
+	 * DMA engine will use.
+	 */
 	dev_data->dma_desc_rx_tail = tail;
 
+	/* Finally, enable a new DMA reception. */
 	eth_xmc4xxx_trigger_dma_rx(dev_cfg->regs);
 
 	return pkt;

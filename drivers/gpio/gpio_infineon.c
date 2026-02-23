@@ -206,24 +206,7 @@ static uint32_t gpio_cat1_get_pending_int(const struct device *dev)
 static uint32_t __maybe_unused gpio_get_pending_pins(const struct gpio_cat1_config *const cfg,
 							GPIO_PRT_Type * const base)
 {
-	uint32_t pending;
-
-#if defined(CONFIG_SOC_FAMILY_INFINEON_PSOC4)
-	uint32_t intr_status = base->INTR;
-	uint32_t intr_mask = 0U;
-
-	for (uint8_t i = 0; i < cfg->ngpios; i++) {
-		uint32_t intr_cfg = (base->INTR_CFG >> (i * 2U)) & 0x3U;
-
-		if (intr_cfg != CY_GPIO_INTR_DISABLE) {
-			intr_mask |= BIT(i);
-		}
-	}
-
-	pending = intr_status & intr_mask;
-#else
-	pending = GPIO_PRT_INTR_MASKED(base);
-#endif
+	uint32_t pending = GPIO_PRT_INTR(base) & gpio_cat1_valid_mask(cfg->ngpios);
 
 	return pending;
 }
@@ -411,10 +394,7 @@ static void gpio_psoc4_register_irq(const struct device *dev)
 #endif
 #define GPIO_CAT1_INIT(n)                                                                          \
 	static const struct gpio_cat1_config gpio_cat1_config_##n = {                              \
-		.common =                                                                          \
-			{                                                                          \
-				.port_pin_mask = GPIO_PORT_PIN_MASK_FROM_DT_INST(n),               \
-			},                                                                         \
+		.common = GPIO_COMMON_CONFIG_FROM_DT_INST(n),                                      \
 		.ngpios = DT_INST_PROP_OR(n, ngpios, 8),                                           \
 		.regs = (GPIO_PRT_Type *)DT_INST_REG_ADDR(n),                                      \
 		INTR_PRIORITY(n)};                                                                 \

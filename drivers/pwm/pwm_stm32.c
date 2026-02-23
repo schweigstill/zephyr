@@ -236,7 +236,8 @@ static int pwm_stm32_set_cycles(const struct device *dev, uint32_t channel,
 	 */
 	if (!IS_TIM_32B_COUNTER_INSTANCE(timer) &&
 	    (period_cycles > UINT16_MAX + 1)) {
-		LOG_ERR("Cannot set PWM output, value exceeds 16-bit timer limit.");
+		LOG_ERR("Cannot set PWM output, period cycles %u exceeds 16-bit timer limit.",
+			period_cycles);
 		return -ENOTSUP;
 	}
 
@@ -639,11 +640,6 @@ static int pwm_stm32_init(const struct device *dev)
 	const struct device *clk = DEVICE_DT_GET(STM32_CLOCK_CONTROL_NODE);
 	uint32_t tim_clk;
 	int r;
-
-	if (!device_is_ready(clk)) {
-		LOG_ERR("clock control device not ready");
-		return -ENODEV;
-	}
 
 	/* Enable clock and store its speed */
 	r = clock_control_on(clk, (clock_control_subsys_t)&cfg->pclken[0]);

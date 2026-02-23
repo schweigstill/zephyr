@@ -91,6 +91,22 @@ included. The ``smp_svr`` sample comes in different flavours.
          :gen-args: -DEXTRA_CONF_FILE="serial.conf;fs.conf;shell-mgmt.conf"
          :compact:
 
+   .. group-tab:: Raw UART (serial)
+
+      .. note::
+         Raw UART support sends raw MCUmgr packets over a UART device without using the SMP over console protocol, this is binary data and cannot be used if e.g. the shell is enabled on the same UART.
+
+      To build the raw UART (serial) sample with file-system management support:
+
+      .. zephyr-app-commands::
+         :tool: west
+         :zephyr-app: samples/subsys/mgmt/mcumgr/smp_svr
+         :board: nrf52840dk/nrf52840
+         :goals: build
+         :west-args: --sysbuild
+         :gen-args: -DEXTRA_CONF_FILE="raw-serial.conf;fs.conf"
+         :compact:
+
    .. group-tab:: USB CDC_ACM
 
       To build the serial sample with USB CDC_ACM backend:
@@ -103,6 +119,11 @@ included. The ``smp_svr`` sample comes in different flavours.
          :west-args: --sysbuild
          :gen-args: -DEXTRA_CONF_FILE="cdc.conf" -DEXTRA_DTC_OVERLAY_FILE="usb.overlay"
          :compact:
+
+      .. note::
+         If you are building the sample with the CDC overlay files
+         and plan to test it, make sure to connect to the USB port
+         on your board that is connected directly to the MCU.
 
    .. group-tab:: Shell
 

@@ -77,6 +77,8 @@ source "drivers/ethernet/Kconfig.sy1xx_mac"
 source "drivers/ethernet/Kconfig.test"
 source "drivers/ethernet/Kconfig.virtio_net"
 source "drivers/ethernet/Kconfig.w5500"
+source "drivers/ethernet/Kconfig.w6100"
+source "drivers/ethernet/Kconfig.xilinx_axi_ethernet_lite"
 source "drivers/ethernet/Kconfig.xilinx_axienet"
 source "drivers/ethernet/Kconfig.xlnx_gem"
 source "drivers/ethernet/Kconfig.xmc4xxx"
@@ -109,3 +111,5 @@ config ETH_NET_IF_NO_AUTO_START
 	  net_if_set_link_addr(iface, mac, 6, NET_LINK_ETHERNET).
 	  When all configurations are done net_if_up() has to be invoked to
 	  bring the interface up.
+
+source "drivers/ethernet/mdio/Kconfig"

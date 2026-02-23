@@ -26,10 +26,15 @@
 #define TEST_AREA_SIZE   FIXED_PARTITION_SIZE(TEST_AREA)
 #define TEST_AREA_DEVICE FIXED_PARTITION_DEVICE(TEST_AREA)
 
-#if defined(CONFIG_SOC_SERIES_NRF54LX) || defined(CONFIG_SOC_FAMILY_MICROCHIP_SAM_D5X_E5X)
+#if defined(CONFIG_SOC_SERIES_NRF54L) || defined(CONFIG_SOC_FAMILY_MICROCHIP_SAM_D5X_E5X)
 #define TEST_FLASH_START (DT_REG_ADDR(DT_MEM_FROM_FIXED_PARTITION(DT_NODELABEL(TEST_AREA))))
 #define TEST_FLASH_SIZE  (DT_REG_SIZE(DT_MEM_FROM_FIXED_PARTITION(DT_NODELABEL(TEST_AREA))))
 #elif defined(CONFIG_SOC_NRF54H20)
+#define TEST_FLASH_START (DT_REG_ADDR(DT_PARENT(DT_PARENT(DT_NODELABEL(TEST_AREA)))))
+#define TEST_FLASH_SIZE  (DT_REG_SIZE(DT_PARENT(DT_PARENT(DT_NODELABEL(TEST_AREA)))))
+#elif defined(CONFIG_SOC_FAMILY_INFINEON_PSOC4)
+/* For PSoC4, storage_partition is a child of partitions, which is a child of flash0 */
+/* We need to go up two levels: storage_partition -> partitions -> flash0 */
 #define TEST_FLASH_START (DT_REG_ADDR(DT_PARENT(DT_PARENT(DT_NODELABEL(TEST_AREA)))))
 #define TEST_FLASH_SIZE  (DT_REG_SIZE(DT_PARENT(DT_PARENT(DT_NODELABEL(TEST_AREA)))))
 #else
@@ -133,15 +138,35 @@ ZTEST(flash_driver_negative, test_negative_flash_fill)
 	rc = flash_fill(flash_dev, fill_val, (TEST_FLASH_START + TEST_FLASH_SIZE), page_info.size);
 	zassert_true(rc < 0, "Invalid use of flash_fill returned %d", rc);
 
-	/* Check error returned when filling unaligned memory */
-	rc = flash_fill(flash_dev, fill_val, (TEST_AREA_OFFSET + 1), page_info.size);
-	zassert_true(rc < 0, "Invalid use of flash_fill returned %d", rc);
-	rc = flash_fill(flash_dev, fill_val, TEST_AREA_OFFSET, (page_info.size + 1));
-	zassert_true(rc < 0, "Invalid use of flash_fill returned %d", rc);
-
 	/* Filling 0 bytes shall succeed */
 	rc = flash_fill(flash_dev, fill_val, TEST_AREA_OFFSET, 0);
 	zassert_true(rc == 0, "flash_fill 0 bytes returned %d", rc);
+}
+
+ZTEST(flash_driver_negative, test_negative_flash_fill_unaligned)
+{
+	int rc;
+	uint8_t fill_val = 0xA; /* Dummy value */
+	size_t write_block_size;
+
+#if !defined(TEST_AREA)
+	/* Flash memory boundaries are correctly calculated
+	 * only for storage_partition.
+	 */
+	ztest_test_skip();
+#endif
+
+	write_block_size = flash_get_write_block_size(flash_dev);
+
+	if (write_block_size <= 1) {
+		ztest_test_skip();
+	}
+	/* Check error returned when filling unaligned memory */
+	rc = flash_fill(flash_dev, fill_val, TEST_AREA_OFFSET + 1, page_info.size);
+	zassert_true(rc < 0, "Invalid use of flash_fill returned %d", rc);
+
+	rc = flash_fill(flash_dev, fill_val, TEST_AREA_OFFSET, page_info.size + 1);
+	zassert_true(rc < 0, "Invalid use of flash_fill returned %d", rc);
 }
 
 ZTEST(flash_driver_negative, test_negative_flash_flatten)
@@ -234,10 +259,6 @@ ZTEST(flash_driver_negative, test_negative_flash_write)
 	rc = flash_write(flash_dev, (TEST_FLASH_START + TEST_FLASH_SIZE), expected, page_info.size);
 	zassert_true(rc < 0, "Invalid use of flash_write returned %d", rc);
 
-	/* Check error returned when writing at unaligned memory */
-	rc = flash_write(flash_dev, (TEST_AREA_OFFSET + 1), expected, page_info.size);
-	zassert_true(rc < 0, "Invalid use of flash_write returned %d", rc);
-
 	/* Check error returned when writing too large chunk of memory */
 	rc = flash_write(flash_dev, TEST_AREA_OFFSET, expected, (TEST_FLASH_SIZE + 1));
 	zassert_true(rc < 0, "Invalid use of flash_write returned %d", rc);
@@ -245,6 +266,28 @@ ZTEST(flash_driver_negative, test_negative_flash_write)
 	/* Writing 0 bytes shall succeed */
 	rc = flash_write(flash_dev, TEST_AREA_OFFSET, expected, 0);
 	zassert_true(rc == 0, "flash_write 0 bytes returned %d", rc);
+}
+
+ZTEST(flash_driver_negative, test_negative_flash_write_unaligned)
+{
+	int rc;
+	size_t write_block_size;
+
+#if !defined(TEST_AREA)
+	/* Flash memory boundaries are correctly calculated
+	 * only for storage_partition.
+	 */
+	ztest_test_skip();
+#endif
+
+	write_block_size = flash_get_write_block_size(flash_dev);
+
+	if (write_block_size <= 1) {
+		ztest_test_skip();
+	}
+	/* Check error returned when writing at unaligned memory */
+	rc = flash_write(flash_dev, (TEST_AREA_OFFSET + 1), expected, page_info.size);
+	zassert_true(rc < 0, "Invalid use of flash_write returned %d", rc);
 }
 
 ZTEST_SUITE(flash_driver_negative, NULL, flash_driver_setup, NULL, NULL, NULL);

@@ -46,6 +46,9 @@ LOG_MODULE_REGISTER(CS40L5X, CONFIG_HAPTICS_LOG_LEVEL);
 #define CS40L5X_REG_IRQ1_STATUS        0x0000E004
 #define CS40L5X_REG_IRQ1_INT1          0x0000E010
 #define CS40L5X_REG_IRQ1_INT2          (CS40L5X_REG_IRQ1_INT1 + 0x4)
+#define CS40L5X_REG_IRQ1_INT8          (CS40L5X_REG_IRQ1_INT2 + 0x18)
+#define CS40L5X_REG_IRQ1_INT9          (CS40L5X_REG_IRQ1_INT8 + 0x4)
+#define CS40L5X_REG_IRQ1_INT10         (CS40L5X_REG_IRQ1_INT9 + 0x4)
 #define CS40L5X_REG_IRQ1_INT14         0x0000E044
 #define CS40L5X_REG_IRQ1_INT18         0x0000E054
 #define CS40L5X_REG_IRQ1_MASK1         0x0000E090
@@ -92,17 +95,17 @@ LOG_MODULE_REGISTER(CS40L5X, CONFIG_HAPTICS_LOG_LEVEL);
 #define CS40L5X_REG_CUSTOM_HEADER2_1   (CS40L5X_REG_CUSTOM_HEADER1_1 + 0xC)
 #define CS40L5X_REG_CUSTOM_DATA_1      (CS40L5X_REG_CUSTOM_HEADER1_1 + 0x14)
 
-#define CS40L5X_MASK_IRQ1_AMP        BIT(31)
-#define CS40L5X_MASK_IRQ8_TEMP       BIT(31)
-#define CS40L5X_MASK_IRQ9_UVP        BIT(6)
-#define CS40L5X_MASK_IRQ9_IND_SHORT  BIT(7)
-#define CS40L5X_MASK_IRQ9_CUR_LIMIT  BIT(8)
-#define CS40L5X_MASK_IRQ1_VDDB       BIT(16)
-#define CS40L5X_MASK_IRQ1_V2MBOX1    BIT(21)
-#define CS40L5X_MASK_INDEX           GENMASK(7, 0)
-#define CS40L5X_MASK_BANK            (GENMASK(27, 20) | BIT(7))
-#define CS40L5X_MASK_ATTENUATION     GENMASK(11, 9)
-#define CS40L5X_MASK_CUSTOM_PLAYBACK BIT(16)
+#define CS40L5X_MASK_IRQ1_AMPLIFIER_SHORT BIT(31)
+#define CS40L5X_MASK_IRQ8_OVERTEMPERATURE BIT(31)
+#define CS40L5X_MASK_IRQ9_UNDERVOLTAGE    BIT(6)
+#define CS40L5X_MASK_IRQ9_INDUCTOR_SHORT  BIT(7)
+#define CS40L5X_MASK_IRQ9_OVERCURRENT     BIT(8)
+#define CS40L5X_MASK_IRQ10_VDDB           BIT(16)
+#define CS40L5X_MASK_IRQ1_V2MBOX1         BIT(21)
+#define CS40L5X_MASK_INDEX                GENMASK(7, 0)
+#define CS40L5X_MASK_BANK                 (GENMASK(27, 20) | BIT(7))
+#define CS40L5X_MASK_ATTENUATION          GENMASK(11, 9)
+#define CS40L5X_MASK_CUSTOM_PLAYBACK      BIT(16)
 
 #define CS40L5X_MBOX_PREVENT_HIBERNATION 0x02000003
 #define CS40L5X_MBOX_ALLOW_HIBERNATION   0x02000004
@@ -770,7 +773,7 @@ static void cs40l5x_error_callback(const struct device *const dev, const uint32_
 	struct cs40l5x_data *const data = dev->data;
 
 	if (data->error_callback != NULL) {
-		(void)data->error_callback(dev, error_bitmask);
+		(void)data->error_callback(dev, error_bitmask, data->user_data);
 	}
 }
 
@@ -854,7 +857,7 @@ static int cs40l5x_process_mailbox(const struct device *const dev)
 		case CS40L5X_MBOX_PERMANENT_SHORT_DETECTED:
 			__fallthrough;
 		case CS40L5X_MBOX_RUNTIME_SHORT_DETECTED:
-			(void)cs40l5x_error_callback(dev, CS40L5X_ERROR_AMPLIFIER_SHORT);
+			(void)cs40l5x_error_callback(dev, HAPTICS_ERROR_OVERCURRENT);
 
 			return 0;
 		default:
@@ -877,41 +880,72 @@ static int cs40l5x_process_interrupts(const struct device *const dev,
 {
 	__maybe_unused const struct cs40l5x_config *const config = dev->config;
 	uint32_t error_bitmask = 0;
+	int ret;
 
-	if (FIELD_GET(CS40L5X_MASK_IRQ1_AMP, irq_ints[CS40L5X_INT1]) != 0) {
+	if (FIELD_GET(CS40L5X_MASK_IRQ1_AMPLIFIER_SHORT, irq_ints[CS40L5X_INT1]) != 0) {
 		LOG_INST_WRN(config->log, "amplifier short detected");
 
-		error_bitmask |= CS40L5X_ERROR_AMPLIFIER_SHORT;
+		error_bitmask |= HAPTICS_ERROR_OVERCURRENT;
+
+		ret = cs40l5x_write(dev, CS40L5X_REG_IRQ1_INT1, CS40L5X_MASK_IRQ1_AMPLIFIER_SHORT);
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
-	if (FIELD_GET(CS40L5X_MASK_IRQ8_TEMP, irq_ints[CS40L5X_INT8]) != 0) {
+	if (FIELD_GET(CS40L5X_MASK_IRQ8_OVERTEMPERATURE, irq_ints[CS40L5X_INT8]) != 0) {
 		LOG_INST_WRN(config->log, "overtemperature detected");
 
-		error_bitmask |= CS40L5X_ERROR_OVERTEMPERATURE;
+		error_bitmask |= HAPTICS_ERROR_OVERTEMPERATURE;
+
+		ret = cs40l5x_write(dev, CS40L5X_REG_IRQ1_INT8, CS40L5X_MASK_IRQ8_OVERTEMPERATURE);
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
-	if (FIELD_GET(CS40L5X_MASK_IRQ9_UVP, irq_ints[CS40L5X_INT9]) != 0) {
+	if (FIELD_GET(CS40L5X_MASK_IRQ9_UNDERVOLTAGE, irq_ints[CS40L5X_INT9]) != 0) {
 		LOG_INST_WRN(config->log, "undervoltage detected");
 
-		error_bitmask |= CS40L5X_ERROR_UNDERVOLTAGE;
+		error_bitmask |= HAPTICS_ERROR_UNDERVOLTAGE;
+
+		ret = cs40l5x_write(dev, CS40L5X_REG_IRQ1_INT9, CS40L5X_MASK_IRQ9_UNDERVOLTAGE);
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
-	if (FIELD_GET(CS40L5X_MASK_IRQ9_IND_SHORT, irq_ints[CS40L5X_INT9]) != 0) {
+	if (FIELD_GET(CS40L5X_MASK_IRQ9_INDUCTOR_SHORT, irq_ints[CS40L5X_INT9]) != 0) {
 		LOG_INST_WRN(config->log, "inductor short detected");
 
-		error_bitmask |= CS40L5X_ERROR_INDUCTOR_SHORT;
+		error_bitmask |= HAPTICS_ERROR_OVERCURRENT;
+
+		ret = cs40l5x_write(dev, CS40L5X_REG_IRQ1_INT9, CS40L5X_MASK_IRQ9_INDUCTOR_SHORT);
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
-	if (FIELD_GET(CS40L5X_MASK_IRQ9_CUR_LIMIT, irq_ints[CS40L5X_INT9]) != 0) {
+	if (FIELD_GET(CS40L5X_MASK_IRQ9_OVERCURRENT, irq_ints[CS40L5X_INT9]) != 0) {
 		LOG_INST_WRN(config->log, "overcurrent condition detected");
 
-		error_bitmask |= CS40L5X_ERROR_OVERCURRENT;
+		error_bitmask |= HAPTICS_ERROR_OVERCURRENT;
+
+		ret = cs40l5x_write(dev, CS40L5X_REG_IRQ1_INT9, CS40L5X_MASK_IRQ9_OVERCURRENT);
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
-	if (FIELD_GET(CS40L5X_MASK_IRQ1_VDDB, irq_ints[CS40L5X_INT10]) != 0) {
+	if (FIELD_GET(CS40L5X_MASK_IRQ10_VDDB, irq_ints[CS40L5X_INT10]) != 0) {
 		LOG_INST_WRN(config->log, "battery undervoltage detected");
 
-		error_bitmask |= CS40L5X_ERROR_BATTERY_UNDERVOLTAGE;
+		error_bitmask |= HAPTICS_ERROR_UNDERVOLTAGE;
+
+		ret = cs40l5x_write(dev, CS40L5X_REG_IRQ1_INT10, CS40L5X_MASK_IRQ10_VDDB);
+		if (ret < 0) {
+			return ret;
+		}
 	}
 
 	if (error_bitmask != 0) {
@@ -1870,13 +1904,15 @@ int cs40l5x_logger_get(const struct device *const dev, enum cs40l5x_logger_sourc
 	return ret;
 }
 
-void cs40l5x_register_error_callback(const struct device *dev,
-				     void (*error_callback)(const struct device *const haptic_dev,
-							    const uint32_t errors))
+static int cs40l5x_register_error_callback(const struct device *dev, haptics_error_callback_t cb,
+					   void *const user_data)
 {
 	struct cs40l5x_data *const data = dev->data;
 
-	data->error_callback = error_callback;
+	data->error_callback = cb;
+	data->user_data = user_data;
+
+	return 0;
 }
 
 int cs40l5x_select_output(const struct device *const dev, const enum cs40l5x_bank bank,
@@ -2293,6 +2329,7 @@ error_pm:
 static DEVICE_API(haptics, cs40l5x_driver_api) = {
 	.start_output = &cs40l5x_start_output,
 	.stop_output = &cs40l5x_stop_output,
+	.register_error_callback = &cs40l5x_register_error_callback,
 };
 
 static int cs40l5x_pm_resume(const struct device *const dev)

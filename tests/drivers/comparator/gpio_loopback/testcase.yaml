@@ -56,6 +56,7 @@ tests:
       - frdm_mcxa153
       - frdm_mcxa156
       - frdm_mcxa266
+      - frdm_mcxa344
       - frdm_mcxa346
       - frdm_mcxa366
       - frdm_mcxe31b
@@ -68,3 +69,6 @@ tests:
     platform_allow:
       - sam_e54_xpro
       - pic32cx_sg41_cult
+  drivers.comparator.gpio_loopback.ite:
+    platform_allow:
+      - it51xxx_evb/it51526aw

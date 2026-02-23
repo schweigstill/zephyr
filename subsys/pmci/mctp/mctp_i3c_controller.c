@@ -114,6 +114,7 @@ int mctp_i3c_controller_tx(struct mctp_binding *binding, struct mctp_pktbuf *pkt
 	struct i3c_msg msg = {
 		.buf = &pkt->data[pkt->start],
 		.len = pktsize,
+		.flags = I3C_MSG_WRITE | I3C_MSG_STOP,
 	};
 
 	int rc = i3c_transfer(b->endpoint_i3c_devs[endpoint_idx], &msg, 1);
@@ -128,14 +129,10 @@ int mctp_i3c_controller_tx(struct mctp_binding *binding, struct mctp_pktbuf *pkt
 
 int mctp_i3c_controller_start(struct mctp_binding *binding)
 {
-	int rc = 0;
+	int rc;
 
 	struct mctp_binding_i3c_controller *b =
 		CONTAINER_OF(binding, struct mctp_binding_i3c_controller, binding);
-
-	if (rc != 0) {
-		LOG_WRN("Could not do dynamic address assignment");
-	}
 
 	for (int i = 0; i < b->num_endpoints; i++) {
 		mctp_i3c_endpoint_bind(b->devices[i], b, &b->endpoint_i3c_devs[i]);

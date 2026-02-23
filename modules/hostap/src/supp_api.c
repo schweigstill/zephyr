@@ -281,9 +281,9 @@ static int wpa_supp_band_chan_compat(struct wpa_supplicant *wpa_s, uint8_t band,
 static inline void wpa_supp_restart_status_work(void)
 {
 	/* Terminate synchronously */
-	wpas_api_ctrl.terminate = 1;
+	wpas_api_ctrl.terminate = true;
 	k_work_flush_delayable(&wpa_supp_status_work, &wpas_api_ctrl.sync);
-	wpas_api_ctrl.terminate = 0;
+	wpas_api_ctrl.terminate = false;
 
 	/* Start afresh */
 	k_work_reschedule_for_queue(get_workq(), &wpa_supp_status_work, K_MSEC(10));
@@ -419,6 +419,7 @@ enum wifi_security_type wpas_key_mgmt_to_zephyr(bool is_hapd, void *config, int 
 		}
 		return WIFI_SECURITY_TYPE_UNKNOWN;
 	case WPA_KEY_MGMT_PSK_SHA256 | WPA_KEY_MGMT_PSK:
+	case WPA_KEY_MGMT_PSK_SHA256 | WPA_KEY_MGMT_PSK | WPA_KEY_MGMT_FT_PSK:
 	case WPA_KEY_MGMT_SAE | WPA_KEY_MGMT_PSK:
 	case WPA_KEY_MGMT_SAE | WPA_KEY_MGMT_PSK_SHA256:
 	case WPA_KEY_MGMT_SAE | WPA_KEY_MGMT_PSK_SHA256 | WPA_KEY_MGMT_PSK:

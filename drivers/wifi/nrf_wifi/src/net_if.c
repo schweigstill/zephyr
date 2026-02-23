@@ -19,6 +19,7 @@
 LOG_MODULE_DECLARE(wifi_nrf, CONFIG_WIFI_NRF70_LOG_LEVEL);
 
 #include <zephyr/net/conn_mgr_monitor.h>
+#include <zephyr/sys/byteorder.h>
 #include <zephyr/sys/reboot.h>
 
 #include "net_private.h"
@@ -427,7 +428,13 @@ int nrf_wifi_if_send(const struct device *dev,
 	}
 
 #ifdef CONFIG_NRF70_RAW_DATA_TX
-	if ((*(unsigned int *)pkt->frags->data) == NRF_WIFI_MAGIC_NUM_RAWTX) {
+	/*
+	 * Check for raw TX magic number in both byte orders:
+	 * - Little-endian: programmatic API stores native uint32_t
+	 * - Big-endian: shell hex input "12345678" stores bytes 0x12,0x34,0x56,0x78
+	 */
+	if (sys_get_le32(pkt->frags->data) == NRF_WIFI_MAGIC_NUM_RAWTX ||
+	    sys_get_be32(pkt->frags->data) == NRF_WIFI_MAGIC_NUM_RAWTX) {
 		if (vif_ctx_zep->if_carr_state != NRF_WIFI_FMAC_IF_CARR_STATE_ON) {
 			goto drop;
 		}
@@ -643,7 +650,6 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf_wifi_vif_ctx_zep *vif_ctx_
 		random_mac_addr,
 		WIFI_MAC_ADDR_LEN);
 #elif CONFIG_WIFI_OTP_MAC_ADDRESS
-#ifndef CONFIG_NRF71_ON_IPC
 	status = nrf_wifi_fmac_otp_mac_addr_get(fmac_dev_ctx,
 				vif_ctx_zep->vif_idx,
 				vif_ctx_zep->mac_addr.addr);
@@ -652,15 +658,6 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf_wifi_vif_ctx_zep *vif_ctx_
 			__func__);
 		goto unlock;
 	}
-#else
-	/* Set dummy MAC address */
-	vif_ctx_zep->mac_addr.addr[0] = 0x00;
-	vif_ctx_zep->mac_addr.addr[1] = 0x00;
-	vif_ctx_zep->mac_addr.addr[2] = 0x5E;
-	vif_ctx_zep->mac_addr.addr[3] = 0x00;
-	vif_ctx_zep->mac_addr.addr[4] = 0x10;
-	vif_ctx_zep->mac_addr.addr[5] = 0x00;
-#endif /* !CONFIG_NRF71_ON_IPC */
 #endif
 
 	if (!nrf_wifi_utils_is_mac_addr_valid(vif_ctx_zep->mac_addr.addr)) {
