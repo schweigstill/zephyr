@@ -20,6 +20,11 @@ the :ref:`release notes<zephyr_4.4>`.
     :local:
     :depth: 2
 
+Common
+******
+
+* The minimum required Python version is now 3.12 (from 3.10).
+
 Build System
 ************
 
@@ -817,6 +822,13 @@ STM32
   the ``cs-gpios`` or new ``st,soft-nss`` property operate in "Soft NSS" mode, while all other
   instances operate in "Hard NSS" mode.
 
+Timer
+=====
+
+* :dtcompatible:`renesas,rza2m-ostm` name has been replaced by :dtcompatible:`renesas,rza2m-ostm-timer`.
+  The choice :kconfig:option:`DT_HAS_RENESAS_RZA2M_OSTM_ENABLED` has been replaced with
+  :kconfig:option:`DT_HAS_RENESAS_RZA2M_OSTM_TIMER_ENABLED` (:github:`100934`)
+
 USB
 ===
 
@@ -874,6 +886,19 @@ Bluetooth Host
 * The Bluetooth Host no longer depends on :c:func:`k_poll`, and therefore doesn't select
   :kconfig:option:`CONFIG_POLL`. If the application code itself depends on this, it needs to
   explicitly enable :kconfig:option:`CONFIG_POLL` in its configuration.
+* Replace any usage of :kconfig:option:`CONFIG_DEVICE_NAME_GATT_WRITABLE_NONE`
+  with :kconfig:option:`CONFIG_BT_DEVICE_NAME_GATT_WRITABLE_NONE`.
+* Replace any usage of :kconfig:option:`CONFIG_DEVICE_NAME_GATT_WRITABLE_ENCRYPT`
+  with :kconfig:option:`CONFIG_BT_DEVICE_NAME_GATT_WRITABLE_ENCRYPT`.
+* Replace any usage of :kconfig:option:`CONFIG_DEVICE_NAME_GATT_WRITABLE_AUTHEN`
+  with :kconfig:option:`CONFIG_BT_DEVICE_NAME_GATT_WRITABLE_AUTHEN`.
+* Replace any usage of :kconfig:option:`CONFIG_DEVICE_APPEARANCE_GATT_WRITABLE_AUTHEN`
+  with :kconfig:option:`CONFIG_BT_DEVICE_APPEARANCE_GATT_WRITABLE_AUTHEN`.
+* The ``required_sec_level`` field has been removed from :c:struct:`bt_iso_chan`.
+  Applications that need to set security for CIS connections should call
+  :c:func:`bt_conn_set_security` on the ACL connection before calling
+  :c:func:`bt_iso_chan_connect`.
+* The ``sec_level`` field has been removed from :c:struct:`bt_iso_server`.
 
 Bluetooth Audio
 ===============
@@ -894,6 +919,12 @@ Bluetooth Mesh
 
 * :kconfig:option:`CONFIG_BT_MESH_MODEL_VND_MSG_CID_FORCE` has been deprecated. Enabling it no
   longer has any effect on message handling performance.
+
+Bluetooth HCI
+=============
+* Use :c:macro:`BT_HCI_LE_SUPERVISION_TIMEOUT_MIN` and :c:macro:`BT_HCI_LE_SUPERVISION_TIMEOUT_MAX` instead
+  of :c:macro:`BT_HCI_LE_SUPERVISON_TIMEOUT_MIN` and :c:macro:`BT_HCI_LE_SUPERVISON_TIMEOUT_MAX` because
+  they have been deprecated for misspelling.
 
 Networking
 **********

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 The Linux Foundation
+# SPDX-License-Identifier: Apache-2.0
+#
 # Device tree binding vendor prefix registry. Keep this list in
 # alphabetical order.
 #
@@ -209,6 +212,7 @@ eeti	eGalax_eMPIA Technology Inc
 efinix	Efinix Inc
 egis	Egis Technology Inc
 einfochips	Einfochips
+eink	E Ink Corporation
 elan	Elan Microelectronic Corp.
 electronut	Electronut Labs
 element14	Element14 (A Premier Farnell Company)
@@ -422,6 +426,7 @@ mapleboard	Mapleboard.org
 marvell	Marvell Technology Group Ltd.
 maxbotix	MaxBotix Inc.
 maxim	Maxim Integrated Products
+maxlinear	Maxlinear, Inc.
 mbvl	Mobiveil Inc.
 mcube	mCube
 meas	Measurement Specialties
@@ -749,6 +754,7 @@ vdl	Van der Laan b.v.
 via	VIA Technologies, Inc.
 vicharak	Vicharak
 videostrong	Videostrong Technology Co., Ltd.
+viewe	VIEWE Display Co., Ltd.
 virtio	Virtual I/O Device Specification, developed by the OASIS consortium
 virtual	Used for virtual device without specific vendor.
 vishay	Vishay Intertechnology, Inc
@@ -813,6 +819,7 @@ zb	Zbit Semiconductor, Inc.
 zealz	Zealz
 zeitec	ZEITEC Semiconductor Co., LTD.
 zephyr	Zephyr Project
+zhaw	Zurich University of Applied Sciences
 zhiantec	Hangzhou Zhian Technology Co., Ltd.
 zidoo	Shenzhen Zidoo Technology Co., Ltd.
 zii	Zodiac Inflight Innovations
