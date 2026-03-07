@@ -513,6 +513,7 @@ Ethernet
   defaulting to the value of :kconfig:option:`CONFIG_ETH_INIT_PRIORITY`. Same for
   :kconfig:option:`CONFIG_PTP_CLOCK_INIT_PRIORITY`,  but only if :kconfig:option:`CONFIG_ETH_DRIVER`
   is enabled. This way the priority is based on the dependencies in the devicetree.
+  (:github:`104310`)
 
 File System
 ===========
@@ -520,12 +521,13 @@ File System
 * :kconfig:option:`CONFIG_FS_FATFS_FSTAB_AUTOMOUNT` is now enabled by default, if any enabled
   :dtcompatible:`zephyr,fstab,fatfs` with the ``automount`` property are present in the devicetree.
   Applications that do not want this behavior need to explicitly disable this option.
+  (:github:`103139`)
 
 * NVS and ZMS have been moved to the new Key-Value Storage Systems (KVSS) subsystem; the move
   affects NVS and ZMS interface header paths which have been moved from
   ``zephyr/fs/`` to ``zephyr/kvss/``.
   Kconfig options for NVS and ZMS have been moved from underneath "File Systems" menu to
-  "Key-Value Storage Systems" menu, no Kconfigs have been affected.
+  "Key-Value Storage Systems" menu, no Kconfigs have been affected. (:github:`103244`)
 
 GPIO
 ====
@@ -743,6 +745,18 @@ Stepper
 
 * :dtcompatible:`adi,tmc50xx` and :dtcompatible:`adi,tmc51xx` devices are now modeled as MFDs.
 
+* Removed the Kconfig.stepper_event_template template used to generate the
+  :kconfig:option:`CONFIG_STEPPER_*_GENERATE_ISR_SAFE_EVENTS` and
+  :kconfig:option:`CONFIG_STEPPER_*_EVENT_QUEUE_LEN` symbols
+
+* :kconfig:option:`CONFIG_STEPPER_STEP_DIR_GENERATE_ISR_SAFE_EVENTS` is replaced by
+  :kconfig:option:`CONFIG_STEPPER_CTRL_ISR_SAFE_EVENTS`
+
+* :kconfig:option:`CONFIG_STEPPER_STEP_DIR_EVENT_QUEUE_LEN` is replaced by
+  :kconfig:option:`CONFIG_STEPPER_CTRL_EVENT_QUEUE_LEN`
+
+* :kconfig:option:`CONFIG_STEPPER_CTRL_ISR_SAFE_EVENTS` is now enabled by default
+
 STM32
 =====
 
@@ -944,6 +958,9 @@ Networking
   networking header files will no longer include those. If the application or Zephyr internal
   code cannot use POSIX APIs, then the relevant network API prefix needs to be added to the
   code calling a network API.
+
+* The return type of :c:type:`net_icmp_handler_t` has changed from ``int`` to
+  :c:enum:`net_verdict`. (:github:`104815`)
 
 * The enum for HTTP server transaction status has been renamed from ``http_data_status``
   to ``http_transaction_status`` to better reflect its purpose. The enum values have also been
