@@ -46,6 +46,9 @@ The following CVEs are addressed by this release:
 * :cve:`2025-53022` `(TF-M) FWU does not check the length of the TLV’s payload
   <https://trustedfirmware-m.readthedocs.io/en/latest/security/security_advisories/fwu_tlv_payload_out_of_bounds_vulnerability.html>`_
 
+* :cve:`2026-1678` `Zephyr project bug tracker GHSA-536f-h63g-hj42
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-536f-h63g-hj42>`_
+
 API Changes
 ***********
 
@@ -164,6 +167,7 @@ New APIs and options
     * :c:member:`bt_ccp_call_control_client_cb.user_data`
     * :kconfig:option:`CONFIG_BT_TBS_MAX_FRIENDLY_NAME_LENGTH`
     * :c:member:`bt_cap_handover_cb.unicast_to_broadcast_created`
+    * :c:func:`bt_tbs_client_get_by_index`
 
   * Host
 
@@ -403,6 +407,8 @@ New Samples
 * :zephyr:code-sample:`ble_peripheral_ans`
 * :zephyr:code-sample:`cpu_freq_pressure`
 * :zephyr:code-sample:`6dof_fifo_stream` (renamed from ``stream_fifo``)
+* :zephyr:code-sample:`accel_stream` (renamed from ``accel_polling``)
+* :zephyr:code-sample:`accel_polling` (it uses sensor_read() API)
 
 ..
   Same as above, this will also be recomputed at the time of the release.
@@ -411,11 +417,17 @@ New Samples
 DeviceTree
 **********
 
+* Migration guide: :ref:`migration_4.4_devicetree`
+* Bindings are no longer allowed to specify any default values for the
+  ``#address-cells`` and ``#size-cells`` properties.
 * :c:macro:`DT_CHILD_BY_UNIT_ADDR_INT`
 * :c:macro:`DT_INST_CHILD_BY_UNIT_ADDR_INT`
 
 Kernel
 ******
+
+* Dropped CONFIG_SCHED_DUMB and CONFIG_WAITQ_DUMB options which were deprecated
+  in Zephyr 4.2.0
 
 * :ref:`cleanup_api`
 
