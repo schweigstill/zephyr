@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
 # SPDX-License-Identifier: Apache-2.0
 
-compatible: "adi,tmc52xx-stepper-drv"
+compatible: "adi,tmc52xx-stepper-driver"
 
 include:
   - name: stepper-driver.yaml

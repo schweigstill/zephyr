@@ -5,8 +5,24 @@
 description: |
   Analog Devices TMC52XX Stepper Motor Controller (SPI mode)
 
-  Example:
+compatible: "adi,tmc52xx"
 
+include: [spi-device.yaml, "adi,tmc52xx-base.yaml"]
+
+properties:
+  reg:
+    required: true
+
+  diag0-gpios:
+    type: phandle-array
+    description: |
+      Diagnostics output DIAG0 pin. This pin enables interrupt-based
+      rampstat handling, allowing the driver to respond to motor events
+      like position reached or stall detection without polling.
+      Should be configured as push-pull output (active high).
+
+examples:
+  - |
     &spi0 {
         tmc52xx: tmc52xx@0 {
             compatible = "adi,tmc52xx";
@@ -18,17 +34,17 @@ description: |
             clock-frequency = <DT_FREQ_M(16)>; /* Internal/External Clock frequency */
             en-pwm-mode, shaft; /* ADI TMC Global configuration flags */
 
-            tmc52xx_1_stepper_driver: tmc52xx_1_stepper_driver {
-              compatible = "adi,tmc52xx-stepper-drv";
+            tmc52xx_1_stepper_driver: stepper-driver-1 {
+              compatible = "adi,tmc52xx-stepper-driver";
               micro-step-res = <256>;
               /* ADI TMC stallguard settings specific to TMC52XX */
               stallguard2-threshold=<9>;
             };
 
-            tmc52xx_1_motion_controller: tmc52xx_1_motion_controller {
-              compatible = "adi,tmc52xx-stepper";
+            tmc52xx_1_motion_controller: motion-controller-1 {
+              compatible = "adi,tmc52xx-stepper-ctrl";
 
-              /* ADI TMC stallguard settings specific to TMC5260 */
+              /* ADI TMC stallguard settings specific to TMC5240 */
               activate-stallguard2;
               stallguard-velocity-check-interval-ms = <100>;
               stallguard-threshold-velocity = <50000>;
@@ -52,19 +68,3 @@ description: |
             };
         };
     };
-
-compatible: "adi,tmc52xx"
-
-include: [spi-device.yaml, "adi,tmc52xx-base.yaml"]
-
-properties:
-  reg:
-    required: true
-
-  diag0-gpios:
-    type: phandle-array
-    description: |
-      Diagnostics output DIAG0 pin. This pin enables interrupt-based
-      rampstat handling, allowing the driver to respond to motor events
-      like position reached or stall detection without polling.
-      Should be configured as push-pull output (active high).
