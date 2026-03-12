@@ -10,8 +10,26 @@ description: |
   - SWION should be connected to half the IO level voltage (1.65V for 3.3V systems)
   - SW_SEL must be HIGH (either via GPIO control or hardwired)
 
-  Example:
+compatible: "adi,tmc52xx"
 
+include: [uart-device.yaml, "adi,tmc52xx-base.yaml"]
+
+properties:
+  sw-sel-gpios:
+    type: phandle-array
+    description: |
+      GPIO connected to the SW_SEL pin of TMC52XX.
+      Must be set HIGH for UART mode operation.
+      If not provided, it's assumed SW_SEL is hardwired to VCC/HIGH.
+
+  uart-device-addr:
+    type: int
+    description: |
+        UART device address for TMC52XX in UART mode.
+        Valid range: 0 - 253
+
+examples:
+  - |
     &uart2 {
         current-speed = <115200>;
         status = "okay";
@@ -25,8 +43,8 @@ description: |
             en-pwm-mode;
             invert-direction;
 
-            tmc52xx_stepper_driver: stepper_driver {
-                compatible = "adi,tmc52xx-stepper-drv";
+            tmc52xx_stepper_driver: stepper-driver {
+                compatible = "adi,tmc52xx-stepper-driver";
                 micro-step-res = <256>;
 
                 /* ADI TMC stallguard settings specific to TMC52XX */
@@ -34,10 +52,10 @@ description: |
             };
 
             /* common stepper controller settings */
-            tmc52xx_motion_controller: motion_controller {
-              compatible = "adi,tmc52xx-stepper";
+            tmc52xx_motion_controller: motion-controller {
+              compatible = "adi,tmc52xx-stepper-ctrl";
 
-              /* ADI TMC stallguard settings specific to TMC5260 */
+              /* ADI TMC stallguard settings specific to TMC5240 */
               activate-stallguard2;
               stallguard-velocity-check-interval-ms = <100>;
               stallguard-threshold-velocity = <50000>;
@@ -61,21 +79,3 @@ description: |
             };
         };
     };
-
-compatible: "adi,tmc52xx"
-
-include: [uart-device.yaml, "adi,tmc52xx-base.yaml"]
-
-properties:
-  sw-sel-gpios:
-    type: phandle-array
-    description: |
-      GPIO connected to the SW_SEL pin of TMC52XX.
-      Must be set HIGH for UART mode operation.
-      If not provided, it's assumed SW_SEL is hardwired to VCC/HIGH.
-
-  uart-device-addr:
-    type: int
-    description: |
-        UART device address for TMC52XX in UART mode.
-        Valid range: 0 - 253
