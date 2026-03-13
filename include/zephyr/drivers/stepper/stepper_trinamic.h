@@ -51,7 +51,7 @@ struct tmc_stallguard_settings {
 	uint32_t sg_threshold_velocity;
 };
 
-/* TMC52XX specific */
+/* TMC524X specific */
 
 
 /**
@@ -81,7 +81,7 @@ struct tmc_ramp_generator_data {
 			uint32_t tcoolthrs;
 			uint32_t thigh;
 		};
-		/* TMC52XX specific */
+		/* TMC524X specific */
 	};
 };
 
