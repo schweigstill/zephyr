@@ -159,7 +159,7 @@ manifest:
       groups:
         - hal
     - name: hal_atmel
-      revision: 065e57c5013051c8b7f2256271349c6942bd9344
+      revision: 8cd575049f04131e333558072484bfc6334c19c4
       path: modules/hal/atmel
       groups:
         - hal
@@ -169,7 +169,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: dff4ebffee46789e6f2153bc1f6f655fd89a7963
+      revision: 79c15a6e947a9a1cd4e348352969ddb3bf441e9c
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -231,7 +231,7 @@ manifest:
         - hal
     - name: hal_renesas
       path: modules/hal/renesas
-      revision: 966d51da3c2bcb54bed15c127ed8fa0261fc23e7
+      revision: c92be1e7442b01e02d0f56a3b0ee090d8d068467
       groups:
         - hal
     - name: hal_rpi_pico
