@@ -3,27 +3,27 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
 # SPDX-License-Identifier: Apache-2.0
 
-config STEPPER_ADI_TMC52XX
-	bool "Activate trinamic tmc52xx"
-	depends on DT_HAS_ADI_TMC52XX_ENABLED
-	select STEPPER_ADI_TMC_UART if $(dt_compat_on_bus,$(DT_COMPAT_ADI_TMC52XX),uart)
-	select STEPPER_ADI_TMC_SPI if $(dt_compat_on_bus,$(DT_COMPAT_ADI_TMC52XX),spi)
+config STEPPER_ADI_TMC524X
+	bool "Activate trinamic tmc524x"
+	depends on DT_HAS_ADI_TMC524X_ENABLED
+	select STEPPER_ADI_TMC_UART if $(dt_compat_on_bus,$(DT_COMPAT_ADI_TMC524X),uart)
+	select STEPPER_ADI_TMC_SPI if $(dt_compat_on_bus,$(DT_COMPAT_ADI_TMC524X),spi)
 	default y
 
-config STEPPER_ADI_TMC52XX_STEPPER
-	bool "Activate trinamic tmc52xx motion controller"
-	depends on DT_HAS_ADI_TMC52XX_STEPPER_ENABLED && STEPPER_ADI_TMC52XX
+config STEPPER_ADI_TMC524X_STEPPER
+	bool "Activate trinamic tmc524x motion controller"
+	depends on DT_HAS_ADI_TMC524X_STEPPER_ENABLED && STEPPER_ADI_TMC524X
 	default y
 
-config STEPPER_ADI_TMC52XX_STEPPER_DRV
-	bool "Activate trinamic tmc52xx stepper driver"
-	depends on DT_HAS_ADI_TMC52XX_STEPPER_DRV_ENABLED && STEPPER_ADI_TMC52XX
+config STEPPER_ADI_TMC524X_STEPPER_DRV
+	bool "Activate trinamic tmc524x stepper driver"
+	depends on DT_HAS_ADI_TMC524X_STEPPER_DRV_ENABLED && STEPPER_ADI_TMC524X
 	default y
 
-if STEPPER_ADI_TMC52XX
+if STEPPER_ADI_TMC524X
 
-module = TMC52XX
-module-str = tmc52xx
+module = TMC524X
+module-str = tmc524x
 source "drivers/stepper/adi_tmc/Kconfig.tmc_rampgen_template"
 
-endif # STEPPER_ADI_TMC52XX
+endif # STEPPER_ADI_TMC524X
