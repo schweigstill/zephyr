@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
-  Common properties for Analog Devices TMC52XX Stepper Motor Controller
+  Common properties for Analog Devices TMC524X Stepper Motor Controller
 
 include:
   - name: adi,trinamic-gconf.yaml
@@ -21,8 +21,8 @@ properties:
     type: int
     required: true
     description: |
-      The frequency of the clock signal provided to the TMC52XX.
+      The frequency of the clock signal provided to the TMC524X.
       This is used for real world conversion.
 
       Hint: µstep velocity v[Hz] µsteps / s v[Hz] = v[52xx] * ( fCLK[Hz]/2 / 2^23 )
-            where v[52xx] is the value written to the TMC52XX.
+            where v[52xx] is the value written to the TMC524X.

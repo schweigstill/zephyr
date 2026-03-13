@@ -3,29 +3,29 @@
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
-  Analog Devices TMC52XX Stepper Motor Controller (UART single-wire mode)
+  Analog Devices TMC524X Stepper Motor Controller (UART single-wire mode)
 
   This binding supports the single-wire UART mode where:
   - SWIOP is connected to the MCU's UART TX/RX pin
   - SWION should be connected to half the IO level voltage (1.65V for 3.3V systems)
   - SW_SEL must be HIGH (either via GPIO control or hardwired)
 
-compatible: "adi,tmc52xx"
+compatible: "adi,tmc524x"
 
-include: [uart-device.yaml, "adi,tmc52xx-base.yaml"]
+include: [uart-device.yaml, "adi,tmc524x-base.yaml"]
 
 properties:
   sw-sel-gpios:
     type: phandle-array
     description: |
-      GPIO connected to the SW_SEL pin of TMC52XX.
+      GPIO connected to the SW_SEL pin of TMC524X.
       Must be set HIGH for UART mode operation.
       If not provided, it's assumed SW_SEL is hardwired to VCC/HIGH.
 
   uart-device-addr:
     type: int
     description: |
-        UART device address for TMC52XX in UART mode.
+        UART device address for TMC524X in UART mode.
         Valid range: 0 - 253
 
 examples:
@@ -34,8 +34,8 @@ examples:
         current-speed = <115200>;
         status = "okay";
 
-        tmc52xx: tmc52xx {
-            compatible = "adi,tmc52xx";
+        tmc524x: tmc524x {
+            compatible = "adi,tmc524x";
             sw-sel-gpios = <&gpiob 0x01 GPIO_ACTIVE_HIGH>;
 
             /* Common settings from base binding */
@@ -43,17 +43,17 @@ examples:
             en-pwm-mode;
             invert-direction;
 
-            tmc52xx_stepper_driver: stepper-driver {
-                compatible = "adi,tmc52xx-stepper-driver";
+            tmc524x_stepper_driver: stepper-driver {
+                compatible = "adi,tmc524x-stepper-driver";
                 micro-step-res = <256>;
 
-                /* ADI TMC stallguard settings specific to TMC52XX */
+                /* ADI TMC stallguard settings specific to TMC524X */
                 stallguard2-threshold=<9>;
             };
 
             /* common stepper controller settings */
-            tmc52xx_motion_controller: motion-controller {
-              compatible = "adi,tmc52xx-stepper-ctrl";
+            tmc524x_motion_controller: motion-controller {
+              compatible = "adi,tmc524x-stepper-ctrl";
 
               /* ADI TMC stallguard settings specific to TMC5240 */
               activate-stallguard2;
