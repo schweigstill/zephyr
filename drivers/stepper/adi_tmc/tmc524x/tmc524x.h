@@ -5,8 +5,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef ZEPHYR_DRIVERS_STEPPER_ADI_TMC52XX_H
-#define ZEPHYR_DRIVERS_STEPPER_ADI_TMC52XX_H
+#ifndef ZEPHYR_DRIVERS_STEPPER_ADI_TMC524X_H
+#define ZEPHYR_DRIVERS_STEPPER_ADI_TMC524X_H
 
 #include <zephyr/drivers/stepper/stepper_ctrl.h>
 #include <zephyr/drivers/stepper/stepper_trinamic.h>
@@ -17,7 +17,7 @@
  * @param dev Pointer to the stepper driver device.
  * @param event The stepper driver event that occurred.
  */
-void tmc52xx_stepper_driver_trigger_cb(const struct device *dev, const enum stepper_event event);
+void tmc524x_stepper_driver_trigger_cb(const struct device *dev, const enum stepper_event event);
 
 /**
  * @brief Trigger the registered callback for stepper events.
@@ -25,7 +25,7 @@ void tmc52xx_stepper_driver_trigger_cb(const struct device *dev, const enum step
  * @param dev Pointer to the stepper device.
  * @param event The stepper event that occurred.
  */
-void tmc52xx_stepper_ctrl_trigger_cb(const struct device *dev, const enum stepper_ctrl_event event);
+void tmc524x_stepper_ctrl_trigger_cb(const struct device *dev, const enum stepper_ctrl_event event);
 
 /**
  * @brief Enable or disable stallguard feature.
@@ -34,58 +34,58 @@ void tmc52xx_stepper_ctrl_trigger_cb(const struct device *dev, const enum steppe
  * @param enable true to enable, false to disable
  * @retval -EIO on failure, -EAGAIN if velocity is too low, 0 on success
  */
-int tmc52xx_stepper_ctrl_stallguard_enable(const struct device *dev, const bool enable);
+int tmc524x_stepper_ctrl_stallguard_enable(const struct device *dev, const bool enable);
 
 /**
- * @brief Read the actual position from the TMC52xx device.
+ * @brief Read the actual position from the TMC524X device.
  *
- * @param dev Pointer to the TMC52xx device.
+ * @param dev Pointer to the TMC524X device.
  * @param position Pointer to store the actual position in microsteps.
  * @retval -EIO on failure, -ENOTSUP if reading while moving over UART is attempted, 0 on success
  */
-int tmc52xx_read_actual_position(const struct device *dev, int32_t *position);
+int tmc524x_read_actual_position(const struct device *dev, int32_t *position);
 
 /**
  * @brief Reschedule the ramp status callback work item.
  *
- * @param dev Pointer to the TMC52xx device.
+ * @param dev Pointer to the TMC524X device.
  */
-void tmc52xx_reschedule_rampstat_callback(const struct device *dev);
+void tmc524x_reschedule_rampstat_callback(const struct device *dev);
 
 /**
- * @brief Write a 32-bit value to a TMC52xx register.
+ * @brief Write a 32-bit value to a TMC524X register.
  *
- * @param dev Pointer to the TMC52xx device.
+ * @param dev Pointer to the TMC524X device.
  * @param reg_addr Register address to write to.
  * @param reg_val Value to write to the register.
  * @retval -EIO on failure, 0 on success
  */
-int tmc52xx_write(const struct device *dev, const uint8_t reg_addr, const uint32_t reg_val);
+int tmc524x_write(const struct device *dev, const uint8_t reg_addr, const uint32_t reg_val);
 
 /**
- * @brief Read a 32-bit value from a TMC52xx register.
+ * @brief Read a 32-bit value from a TMC524X register.
  *
- * @param dev Pointer to the TMC52xx device.
+ * @param dev Pointer to the TMC524X device.
  * @param reg_addr Register address to read from.
  * @param reg_val Pointer to store the read value.
  * @retval -EIO on failure, 0 on success
  */
-int tmc52xx_read(const struct device *dev, const uint8_t reg_addr, uint32_t *reg_val);
+int tmc524x_read(const struct device *dev, const uint8_t reg_addr, uint32_t *reg_val);
 
 /**
- * @brief Check if the TMC52xx driver is interrupt driven.
+ * @brief Check if the TMC524X driver is interrupt driven.
  *
- * @param dev Pointer to the TMC52xx device.
+ * @param dev Pointer to the TMC524X device.
  * @return true if interrupt driven, false otherwise.
  */
-bool tmc52xx_is_interrupt_driven(const struct device *dev);
+bool tmc524x_is_interrupt_driven(const struct device *dev);
 
 /**
- * @brief Get the clock frequency in Hz of the TMC52XX device.
+ * @brief Get the clock frequency in Hz of the TMC524X device.
  *
- * @param dev Pointer to the TMC52XX device.
+ * @param dev Pointer to the TMC524X device.
  * @return Clock frequency in Hz
  */
-int tmc52xx_get_clock_frequency(const struct device *dev);
+int tmc524x_get_clock_frequency(const struct device *dev);
 
-#endif /* ZEPHYR_DRIVERS_STEPPER_ADI_TMC52XX_H */
+#endif /* ZEPHYR_DRIVERS_STEPPER_ADI_TMC524X_H */

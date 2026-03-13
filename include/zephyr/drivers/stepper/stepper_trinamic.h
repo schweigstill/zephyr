@@ -76,7 +76,7 @@ extern "C" {
 #define TMC_RAMP_THIGH_MAX	GENMASK(19, 0)
 #define TMC_RAMP_THIGH_MIN	0
 
-/* TMC52XX specific */
+/* TMC524X specific */
 
 
 /**
@@ -106,7 +106,7 @@ struct tmc_ramp_generator_data {
 			uint32_t tcoolthrs;
 			uint32_t thigh;
 		};
-		/* TMC52XX specific */
+		/* TMC524X specific */
 	};
 };
 
