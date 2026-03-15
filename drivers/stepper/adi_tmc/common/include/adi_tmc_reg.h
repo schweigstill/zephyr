@@ -22,9 +22,6 @@
 extern "C" {
 #endif
 
-/** Common Registers for TMC50XX, TMC51XX and TMC52XX */
-#if defined(CONFIG_STEPPER_ADI_TMC50XX) || defined(CONFIG_STEPPER_ADI_TMC51XX) || defined(CONFIG_STEPPER_ADI_TMC52XX)
-
 #define TMC5XXX_WRITE_BIT        0x80U
 #define TMC5XXX_ADDRESS_MASK     0x7FU
 
