@@ -208,6 +208,15 @@ struct tmc_ramp_generator_data {
 		.thigh = DT_INST_PROP(node, thigh),				\
 	}
 
+#define TMC_RAMP_DT_SPEC_GET_TMC524X(node)					\
+	{									\
+		TMC_RAMP_DT_SPEC_GET_COMMON(DT_DRV_INST(node))			\
+		.tpowerdown = DT_INST_PROP(node, tpowerdown),			\
+		.tpwmthrs = DT_INST_PROP(node, tpwmthrs),			\
+		.tcoolthrs = DT_INST_PROP(node, tcoolthrs),			\
+		.thigh = DT_INST_PROP(node, thigh),				\
+	}
+
 /**
  * @brief Configure Trinamic Stepper Ramp Generator
  *
@@ -219,7 +228,11 @@ struct tmc_ramp_generator_data {
  * @retval 0 Success
  */
 int tmc50xx_stepper_ctrl_set_ramp(const struct device *dev,
-			     const struct tmc_ramp_generator_data *ramp_data);
+				const struct tmc_ramp_generator_data *ramp_data);
+int tmc51xx_stepper_ctrl_set_ramp(const struct device *dev,
+				const struct tmc_ramp_generator_data *ramp_data);
+int tmc524x_stepper_ctrl_set_ramp(const struct device *dev,
+				const struct tmc_ramp_generator_data *ramp_data);
 
 /**
  * @brief Set the maximum velocity of the stepper motor
@@ -231,17 +244,8 @@ int tmc50xx_stepper_ctrl_set_ramp(const struct device *dev,
  * @retval 0 Success
  */
 int tmc50xx_stepper_ctrl_set_max_velocity(const struct device *dev, uint32_t velocity);
-
-/**
- * @brief Set the maximum velocity of the stepper motor
- *
- * @param dev Pointer to the stepper driver instance
- * @param velocity Maximum velocity in microsteps per second.
- *
- * @retval -EIO General input / output error
- * @retval 0 Success
- */
 int tmc51xx_stepper_ctrl_set_max_velocity(const struct device *dev, uint32_t velocity);
+int tmc524x_stepper_ctrl_set_max_velocity(const struct device *dev, uint32_t velocity);
 /**
  * @}
  */

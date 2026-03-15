@@ -31,11 +31,6 @@ extern "C" {
 #define TMC5XXX_GCONF 0x00
 #define TMC5XXX_GSTAT 0x01
 
-#endif
-
-/** Common Registers for TMC50XX and TMC51XX */
-#if defined(CONFIG_STEPPER_ADI_TMC50XX) || defined(CONFIG_STEPPER_ADI_TMC51XX)
-
 #define TMC5XXX_CLOCK_FREQ_SHIFT 24
 
 #define TMC5XXX_RAMPMODE_POSITIONING_MODE       0
