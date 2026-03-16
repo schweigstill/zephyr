@@ -39,7 +39,9 @@ extern "C" {
 #define TMC524X_DRV_CONF			0x0A
 #define TMC524X_GLOBAL_SCALER		0x0B
 
-/* Velocity dependent configuration registers */
+/**
+ * @brief Velocity dependent configuration registers
+ */
 
 #define TMC524X_IHOLD_IRUN			0x10
 #define TMC524X_TPOWER_DOWN			0x11
@@ -48,7 +50,9 @@ extern "C" {
 #define TMC524X_TCOOLTHRS			0x14
 #define TMC524X_THIGH				0x15
 
-/* Ramp generator registers	*/
+/**
+ * @brief Ramp generator registers
+ */
 
 #define TMC524X_RAMPMODE			0x20
 #define TMC524X_XACTUAL				0x21
@@ -68,14 +72,18 @@ extern "C" {
 #define TMC524X_A2					0x2F
 #define TMC524X_D2					0x30
 
-/* Ramp/switch config + status */
+/**
+ * @brief Ramp/switch config + status
+ */
 
 #define TMC524X_VDCMIN_ADDR			0x33		/* With	_ADDR suffix in	order to avoid confusion with shifted value	*/
 #define TMC524X_SWMODE				0x34
 #define TMC524X_RAMPSTAT			0x35
 #define TMC524X_XLATCH				0x36
 
-/* Encoder registers */
+/**
+ * @brief Encoder registers
+ */
 
 #define TMC524X_ENCMODE				0x38
 #define TMC524X_X_ENC				0x39
@@ -86,13 +94,17 @@ extern "C" {
 #define TMC524X_VIRTUAL_STOP_L		0x3E
 #define TMC524X_VIRTUAL_STOP_R		0x3F
 
-/* ADC registers */
+/**
+ * @brief ADC registers
+ */
 
 #define TMC524X_ADC_VSUPPLY_AIN		0x50
 #define TMC524X_ADC_TEMP			0x51
 #define TMC524X_OTW_OV_VTH			0x52
 
-/* Motor driver registers */
+/**
+ * @brief Motor driver registers
+ */
 
 #define TMC524X_MSLUT0				0x60
 #define TMC524X_MSLUT1				0x61
@@ -115,13 +127,15 @@ extern "C" {
 #define TMC524X_PWM_AUTO			0x72
 #define TMC524X_SG4_THRS			0x74
 #define TMC524X_SG4_RESULT			0x75
-#define TMC524X_IND					0x76
+#define TMC524X_SG4_IND				0x76
 
 /**
  * @brief TMC524X register bit positions and masks
  */
 
-/* === GCONF bit positions (TMC524X) === */
+/**
+ * @brief GCONF bit positions (TMC524X)
+ */
 
 #define TMC524X_GCONF_FAST_STANDSTILL			BIT(1)
 #define TMC524X_GCONF_EN_PWM_MODE				BIT(2)
@@ -137,7 +151,9 @@ extern "C" {
 #define TMC524X_GCONF_LENGTH_STEP_PULSE_MASK	GENMASK(20,	17)
 #define TMC524X_GCONF_LENGTH_STEP_PULSE(n)		(((n) << TMC524X_GCONF_LENGTH_STEP_PULSE_SHIFT)	& TMC524X_GCONF_LENGTH_STEP_PULSE_MASK)
 
-/* === GSTAT bit positions (TMC524X) === */
+/**
+ * @brief GSTAT bit positions (TMC524X)
+ */
 
 #define TMC524X_GSTAT_RESET						BIT(0)
 #define TMC524X_GSTAT_DRV_ERR					BIT(1)
@@ -145,7 +161,9 @@ extern "C" {
 #define TMC524X_GSTAT_REGISTER_RESET			BIT(3)
 #define TMC524X_GSTAT_VM_UVLO					BIT(4)
 
-/* === NODECONF bit positions (TMC524X)	===	*/
+/**
+ * @brief NODECONF bit positions (TMC524X)
+ */
 
 #define TMC524X_NODECONF_NODEADDR_SHIFT			0
 #define TMC524X_NODECONF_NODEADDR_MASK			GENMASK(7, 0)
@@ -154,7 +172,9 @@ extern "C" {
 #define TMC524X_NODECONF_SENDDELAY_MASK			GENMASK(11,	8)
 #define TMC524X_NODECONF_SENDDELAY(n)			(((n) << TMC524X_NODECONF_SENDDELAY_SHIFT) & TMC524X_NODECONF_SENDDELAY_MASK)
 
-/* === IOIN bit positions (TMC524X)	===	*/
+/**
+ * @brief IOIN bit positions (TMC524X)
+ */
 
 #define TMC524X_IOIN_REFL						BIT(0)
 #define TMC524X_IOIN_REFR						BIT(1)
@@ -175,7 +195,9 @@ extern "C" {
 #define TMC524X_IOIN_SILICON_RV_MASK			GENMASK(18,	16)
 #define TMC524X_IOIN_SILICON_RV(n)				(((n) << TMC524X_IOIN_SILICON_RV_SHIFT)	& TMC524X_IOIN_SILICON_RV_MASK)
 
-/* === DRV_CONF bit positions (TMC524X) === */
+/**
+ * @brief DRV_CONF bit positions (TMC524X)
+ */
 
 #define TMC524X_DRV_CONF_CURRENT_RANGE_SHIFT	0
 #define TMC524X_DRV_CONF_CURRENT_RANGE_MASK		GENMASK(1, 0)
@@ -184,7 +206,9 @@ extern "C" {
 #define TMC524X_DRV_CONF_SLOPE_CONTROL_MASK		GENMASK(5, 4)
 #define TMC524X_DRV_CONF_SLOPE_CONTROL(n)		(((n) << TMC524X_DRV_CONF_SLOPE_CONTROL_SHIFT) & TMC524X_DRV_CONF_SLOPE_CONTROL_MASK)
 
-/* === IHOLD_IRUN bit positions (TMC524X) === */
+/**
+ * @brief IHOLD_IRUN bit positions (TMC524X)
+ */
 
 #define TMC524X_IHOLD_MASK						GENMASK(4, 0)
 #define TMC524X_IHOLD_SHIFT						0
@@ -202,13 +226,17 @@ extern "C" {
 #define TMC524X_IRUNDELAY_SHIFT					24
 #define TMC524X_IRUNDELAY(n)					(((n) << TMC524X_IRUNDELAY_SHIFT) &	TMC524X_IRUNDELAY_MASK)
 
-/* === VDCMIN bit positions	(TMC524X) === */
+/**
+ * @brief VDCMIN bit positions (TMC524X)
+ */
 
 #define TMC524X_VDCMIN_MASK						GENMASK(22,	8)
 #define TMC524X_VDCMIN_SHIFT					8
 #define TMC524X_VDCMIN(n)						(((n) << TMC524X_VDCMIN_SHIFT) & TMC524X_VDCMIN_MASK)
 
-/* === SWMODE bit positions (TMC524X) === */
+/**
+ * @brief SWMODE bit positions (TMC524X)
+ */
 
 #define TMC524X_SWMODE_STOP_L_ENABLE			BIT(0)
 #define TMC524X_SWMODE_STOP_R_ENABLE			BIT(1)
@@ -226,7 +254,9 @@ extern "C" {
 #define TMC524X_SWMODE_EN_VIRTUAL_STOP_R		BIT(13)
 #define TMC524X_SWMODE_VIRTUAL_STOP_ENC			BIT(14)
 
-/* === RAMPSTAT bit positions (TMC524X) ===	*/
+/**
+ * @brief RAMPSTAT bit positions (TMC524X)
+ */
 
 #define TMC524X_RAMPSTAT_STATUS_STOP_L			BIT(0)
 #define TMC524X_RAMPSTAT_STATUS_STOP_R			BIT(1)
@@ -245,7 +275,9 @@ extern "C" {
 #define TMC524X_RAMPSTAT_STATUS_VIRTUAL_STOP_L	BIT(14)
 #define TMC524X_RAMPSTAT_STATUS_VIRTUAL_STOP_R	BIT(15)
 
-/* === ENCMODE bit positions (TMC524X) === */
+/**
+ * @brief ENCMODE bit positions (TMC524X)
+ */
 
 #define TMC524X_ENCMODE_POL_A					BIT(0)
 #define TMC524X_ENCMODE_POL_B					BIT(1)
@@ -260,12 +292,16 @@ extern "C" {
 #define TMC524X_ENCMODE_LATCH_X_ACT				BIT(9)
 #define TMC524X_ENCMODE_ENC_SEL_DECIMAL			BIT(10)
 
-/* === ENCMODE bit positions (TMC524X) === */
+/**
+ * @brief ENCMODE bit positions (TMC524X)
+ */
 
 #define TMC524X_ENCSTATUS_N_EVENT				BIT(0)
 #define TMC524X_ENCSTATUS_DEVIATION_WARN		BIT(1)
 
-/* === ADC_VSUPPLY_AIN bit positions (TMC524X) === */
+/**
+ * @brief ADC_VSUPPLY_AIN bit positions (TMC524X)
+ */
 
 #define TMC524X_ADC_VSUPPLY_MASK				GENMASK(12,	0)
 #define TMC524X_ADC_VSUPPLY_SHIFT				0
@@ -274,7 +310,9 @@ extern "C" {
 #define TMC524X_ADC_VIN_SHIFT					16
 #define TMC524X_ADC_VIN(n)						(((n) << TMC524X_ADC_VIN_SHIFT)	& TMC524X_ADC_VIN_MASK)
 
-/* === OTW_OV_VTH bit positions	(TMC524X) === */
+/**
+ * @brief OTW_OV_VTH bit positions (TMC524X)
+ */
 
 #define TMC524X_OTW_OV_VTH_MASK					GENMASK(12,	0)
 #define TMC524X_OTW_OV_VTH_SHIFT				0
@@ -283,7 +321,9 @@ extern "C" {
 #define TMC524X_OVERTEMMPPREWARNING_VTH_SHIFT	16
 #define TMC524X_OVERTEMMPPREWARNING_VTH(n)		(((n) << TMC524X_OVERTEMMPPREWARNING_VTH_SHIFT)	& TMC524X_OVERTEMMPPREWARNING_VTH_MASK)
 
-/* === TMC524X_MSLUTSEL	bit	positions (TMC524X) ===	*/
+/**
+ * @brief TMC524X_MSLUTSEL bit positions (TMC524X)
+ */
 
 #define TMC524X_MSLUTSEL_W0_MASK				GENMASK(1, 0)
 #define TMC524X_MSLUTSEL_W0_SHIFT				0
@@ -307,7 +347,9 @@ extern "C" {
 #define TMC524X_MSLUTSEL_X3_SHIFT				24
 #define TMC524X_MSLUTSEL_X3(n)					(((n) << TMC524X_MSLUTSEL_X3_SHIFT)	& TMC524X_MSLUTSEL_X3_MASK)
 
-/* === TMC524X_MSLUTSTART bit positions (TMC524X) === */
+/**
+ * @brief TMC524X_MSLUTSTART bit positions (TMC524X)
+ */
 
 #define TMC524X_MSLUTSTART_START_SIN_MASK		GENMASK(7, 0)
 #define TMC524X_MSLUTSTART_START_SIN_SHIFT		0
@@ -319,7 +361,9 @@ extern "C" {
 #define TMC524X_MSLUTSTART_OFFSET_SIN90_SHIFT	24
 #define TMC524X_MSLUTSTART_OFFSET_SIN90(n)		(((n) << TMC524X_MSLUTSTART_OFFSET_SIN90_SHIFT)	& TMC524X_MSLUTSTART_OFFSET_SIN90_MASK)
 
-/* === TMC524X_MSCURACT bit positions (TMC524X) === */
+/**
+ * @brief TMC524X_MSCURACT bit positions (TMC524X)
+ */
 
 #define TMC524X_MSCURACT_CUR_B_MASK				GENMASK(8, 0)
 #define TMC524X_MSCURACT_CUR_B_SHIFT			0
@@ -328,6 +372,9 @@ extern "C" {
 #define TMC524X_MSCURACT_CUR_A_SHIFT			16
 #define TMC524X_MSCURACT_CUR_A(n)				(((n) << TMC524X_MSCURACT_CUR_A_SHIFT) & TMC524X_MSCURACT_CUR_A_MASK)
 
+/**
+ * @brief CHOPCONF bit positions (TMC524X)
+ */
 
 #define TMC524X_CHOPCONF_TOFF_MASK				GENMASK(3, 0)
 #define TMC524X_CHOPCONF_TOFF_SHIFT				0
@@ -356,6 +403,9 @@ extern "C" {
 #define TMC524X_CHOPCONF_DISS2G					30
 #define TMC524X_CHOPCONF_DISS2VS				31
 
+/**
+ * @brief COOLCONF bit positions (TMC524X)
+ */
 
 #define TMC524X_COOLCONF_SEMIN_MASK				GENMASK(3, 0)
 #define TMC524X_COOLCONF_SEMIN_SHIFT			0
@@ -374,6 +424,9 @@ extern "C" {
 #define TMC524X_COOLCONF_SGT_SHIFT				16
 #define TMC524X_COOLCONF_SGT(n)					(((n) << TMC524X_COOLCONF_SGT_SHIFT) & TMC524X_COOLCONF_SGT_MASK)
 
+/**
+ * @brief DCCTRL bit positions (TMC524X)
+ */
 
 #define TMC524X_DCCTRL_DC_TIME_MASK				GENMASK(9, 0)
 #define TMC524X_DCCTRL_DC_TIME_SHIFT			0
@@ -381,6 +434,10 @@ extern "C" {
 #define TMC524X_DCCTRL_DC_SG_MASK				GENMASK(23, 16)
 #define TMC524X_DCCTRL_DC_SG_SHIFT				16
 #define TMC524X_DCCTRL_DC_SG(n)					(((n) << ) & )
+
+/**
+ * @brief DRV_STATUS bit positions (TMC524X)
+ */
 
 #define TMC524X_DRV_STATUS_SG_RESULT_MASK		GENMASK(9, 0)
 #define TMC524X_DRV_STATUS_SG_RESULT_SHIFT		0
@@ -401,6 +458,9 @@ extern "C" {
 #define TMC524X_DRV_STATUS_OLB					BIT(30)
 #define TMC524X_DRV_STATUS_STST					BIT(31)
 
+/**
+ * @brief PWMCONFIG bit positions (TMC524X)
+ */
 
 #define TMC524X_PWMCONFIG_PWM_OFS_MASK			GENMASK(7, 0)
 #define TMC524X_PWMCONFIG_PWM_OFS_SHIFT			0
@@ -421,61 +481,71 @@ extern "C" {
 #define TMC524X_PWMCONFIG_PWM_LIM_SHIFT			28
 #define TMC524X_PWMCONFIG_PWM_LIM(n)			(((n) << TMC524X_PWMCONFIG_PWM_LIM_SHIFT) & TMC524X_PWMCONFIG_PWM_LIM_MASK)
 
+/**
+ * @brief PWM_SCALE bit positions (TMC524X)
+ */
 
-#define TMC524X_PWM_SCALE_SUM_MASK				GENMASK(
-#define TMC524X_PWM_SCALE_SUM_SHIFT
-#define TMC524X_PWM_SCALE_SUM(n)				(((n) << ) & )
-#define TMC524X_PWM_SCALE_AUTO_MASK				GENMASK(
-#define TMC524X_PWM_SCALE_AUTO_SHIFT
-#define TMC524X_PWM_SCALE_AUTO(n)				(((n) << ) & )
+#define TMC524X_PWM_SCALE_SUM_MASK				GENMASK(9, 0)
+#define TMC524X_PWM_SCALE_SUM_SHIFT				0
+#define TMC524X_PWM_SCALE_SUM(n)				(((n) << TMC524X_PWM_SCALE_SUM_SHIFT) & TMC524X_PWM_SCALE_SUM_MASK)
+#define TMC524X_PWM_SCALE_AUTO_MASK				GENMASK(24, 16)
+#define TMC524X_PWM_SCALE_AUTO_SHIFT			16
+#define TMC524X_PWM_SCALE_AUTO(n)				(((n) << TMC524X_PWM_SCALE_AUTO_SHIFT) & TMC524X_PWM_SCALE_AUTO_MASK)
 
+/**
+ * @brief PWM_AUTO bit positions (TMC524X)
+ */
 
+#define TMC524X_PWM_AUTO_OFS_MASK				GENMASK(7, 0)
+#define TMC524X_PWM_AUTO_OFS_SHIFT				0
+#define TMC524X_PWM_AUTO_OFS(n)					(((n) << TMC524X_PWM_AUTO_OFS_SHIFT) & TMC524X_PWM_AUTO_OFS_MASK)
+#define TMC524X_PWM_AUTO_GRAD_MASK				GENMASK(23, 16)
+#define TMC524X_PWM_AUTO_GRAD_SHIFT				16
+#define TMC524X_PWM_AUTO_GRAD(n)				(((n) << TMC524X_PWM_AUTO_GRAD_SHIFT) & TMC524X_PWM_AUTO_GRAD_MASK)
 
-#define TMC524X_PWM_AUTO_OFS_MASK				GENMASK(
-#define TMC524X_PWM_AUTO_OFS_SHIFT
-#define TMC524X_PWM_AUTO_OFS(n)					(((n) << ) & )
-#define TMC524X_PWM_AUTO_GRAD_MASK				GENMASK(
-#define TMC524X_PWM_AUTO_GRAD_SHIFT
-#define TMC524X_PWM_AUTO_GRAD(n)				(((n) << ) & )
+/**
+ * @brief SG_THRS bit positions (TMC524X)
+ */
 
+#define TMC524X_SG4_THRS_SG4_THRS_MASK			GENMASK(7, 0)
+#define TMC524X_SG4_THRS_SG4_THRS_SHIFT			0
+#define TMC524X_SG4_THRS_SG4_THRS(n)			(((n) << TMC524X_SG4_THRS_SG4_THRS_SHIFT) & TMC524X_SG4_THRS_SG4_THRS_MASK)
+#define TMC524X_SG4_THRS_SG4_FILT_EN			BIT(8)
+#define TMC524X_SG4_THRS_SG_ANGLE_OFFSET		BIT(9)
 
+/**
+ * @brief SG4_IND bit positions (TMC524X)
+ */
 
-#define TMC524X_SG4_THRS_SG4_THRS_MASK			GENMASK(
-#define TMC524X_SG4_THRS_SG4_THRS_SHIFT
-#define TMC524X_SG4_THRS_SG4_THRS(n)			(((n) << ) & )
+#define TMC524X_SG4_IND_0_MASK					GENMASK(7, 0)
+#define TMC524X_SG4_IND_0_SHIFT					0
+#define TMC524X_SG4_IND_0(n)					(((n) << TMC524X_SG4_IND_0_SHIFT) & TMC524X_SG4_IND_0_MASK)
+#define TMC524X_SG4_IND_1_MASK					GENMASK(15, 8)
+#define TMC524X_SG4_IND_1_SHIFT					8
+#define TMC524X_SG4_IND_1(n)					(((n) << TMC524X_SG4_IND_1_SHIFT) & TMC524X_SG4_IND_1_MASK)
+#define TMC524X_SG4_IND_2_MASK					GENMASK(23, 16)
+#define TMC524X_SG4_IND_2_SHIFT					16
+#define TMC524X_SG4_IND_2(n)					(((n) << TMC524X_SG4_IND_2_SHIFT) & TMC524X_SG4_IND_2_MASK)
+#define TMC524X_SG4_IND_3_MASK					GENMASK(31, 24)
+#define TMC524X_SG4_IND_3_SHIFT					24
+#define TMC524X_SG4_IND_3(n)					(((n) << TMC524X_SG4_IND_3_SHIFT) & TMC524X_SG4_IND_3_MASK)
 
+/**
+ * @brief SPI_STATUS flag bit position (TMC524x) in SPI_STATUS register, *not* RAMPSTAT register
+ */
 
+#define TMC524X_SPI_STATUS_RESET_FLAG			BIT(0)
+#define TMC524X_SPI_STATUS_DRIVER_ERROR			BIT(1)
+#define TMC524X_SPI_STATUS_SG2					BIT(2)
+#define TMC524X_SPI_STATUS_STANDSTILL			BIT(3)
+#define TMC524X_SPI_STATUS_VELOCITY_REACHED		BIT(4)
+#define TMC524X_SPI_STATUS_POSITION_REACHED		BIT(5)
+#define TMC524X_SPI_STATUS_STATUS_STOP_L		BIT(6)
+#define TMC524X_SPI_STATUS_STATUS_STOP_R		BIT(7)
 
-#define TMC524X_SG4_IND_MASK					GENMASK(
-#define TMC524X_SG4_IND_SHIFT
-#define TMC524X_SG4_IND(n)						(((n) << ) & )
-#define TMC524X_SG4_IND_MASK					GENMASK(
-#define TMC524X_SG4_IND_SHIFT
-#define TMC524X_SG4_IND(n)						(((n) << ) & )
-#define TMC524X_SG4_IND_MASK					GENMASK(
-#define TMC524X_SG4_IND_SHIFT
-#define TMC524X_SG4_IND(n)						(((n) << ) & )
-#define TMC524X_SG4_IND_MASK					GENMASK(
-#define TMC524X_SG4_IND_SHIFT
-#define TMC524X_SG4_IND(n)						(((n) << ) & )
-
-
-
-
-#if	0
-#define TMC524X__MASK		GENMASK(
-#define TMC524X__SHIFT
-#define TMC524X_(n)			(((n) << ) & )
-#endif
-
-
-#define TMC524X_RAMPSTAT_INT_MASK				GENMASK(9, 4)
-#define TMC524X_RAMPSTAT_INT_SHIFT				4
-
-
-
-
-// (((n) << _SHIFT) & _MASK)
+/* Compatibility with older TMC drivers: */
+//#define TMC524X_RAMPSTAT_INT_MASK				GENMASK(9, 4)
+//#define TMC524X_RAMPSTAT_INT_SHIFT			4
 
 #endif /* CONFIG_STEPPER_ADI_TMC524X */
 
