@@ -9,6 +9,7 @@
 #include <zephyr/drivers/stepper/stepper.h>
 #include <zephyr/drivers/gpio.h>
 #include "tmc524x.h"
+#include "tmc524x_reg.h"
 #include <adi_tmc5xxx_common.h>
 
 #include <zephyr/logging/log.h>
