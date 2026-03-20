@@ -178,6 +178,12 @@ Boards
   ``zephyr,code-partition`` chosen devices. Support for using fixed-partitions as the chosen
   ``zephyr,code-partition`` node will be deprecated in the future.
 
+* Boards or projects based on STM32N6x SoCs (:kconfig:option:`CONFIG_SOC_SERIES_STM32N6X`) now need
+  to explicitly enable :kconfig:option:`CONFIG_TRUSTED_EXECUTION_SECURE` when the Zephyr
+  application is expected to execute in the secure state of the process. Alternatively, if the
+  Zephyr is expected to execute in the non-secure state of the processor, the board or project
+  must explicitly enable :kconfig:option:`CONFIG_TRUSTED_EXECUTION_NON_SECURE`.
+
 Device Drivers and Devicetree
 *****************************
 
@@ -940,6 +946,17 @@ STM32
   is now selected automatically based on devicetree configuration: instances with either of
   the ``cs-gpios`` or new ``st,soft-nss`` property operate in "Soft NSS" mode, while all other
   instances operate in "Hard NSS" mode.
+
+* :kconfig:option:`CONFIG_NUM_IRQS` is computed automatically based on active (``status = "okay";``)
+  devices by using the new ``dt_highest_controller_irq_number`` Kconfig preprocessor function.
+  Applications which register custom ISRs (using :c:macro:`IRQ_CONNECT()`) may encounter build
+  failures such as the following due to :kconfig:option:`CONFIG_NUM_IRQS` having a lower value:
+
+  .. code-block::
+
+    gen_isr_tables.py: error: IRQ 114 (offset=0) exceeds the maximum of 106
+
+  Explicitly set :kconfig:option:`CONFIG_NUM_IRQS` to an appropriate value to solve these issues.
 
 Timer
 =====
