@@ -213,7 +213,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: d5a3b40c05699689c692021d82171dff3e94b38e
+      revision: d95e637c2859f2813f8cabdb2ef318d7fc0e44c4
       path: modules/hal/nxp
       groups:
         - hal
@@ -278,7 +278,7 @@ manifest:
       groups:
         - hal
     - name: hal_wch
-      revision: 6dd313768b5f4cc69baeac4ce6e59f2038eb8ce5
+      revision: dd3855ea624b05de7e6e95584789615d2058a0f3
       path: modules/hal/wch
       groups:
         - hal
@@ -395,7 +395,7 @@ manifest:
         - testing
         - tee
     - name: tf-psa-crypto
-      revision: 9deb104c6f18f80f2944c7e672fcfa8f14639fab
+      revision: 6820f1dadc67c289d2dc63aec495519c9d589d8e
       path: modules/crypto/mbedtls/tf-psa-crypto
       groups:
         - crypto
