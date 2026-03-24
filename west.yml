@@ -172,7 +172,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: a9b1991ad956e24468ebc841d3f90398729d46b5
+      revision: cbf74978350266a45edbfb4508553a3990341dd2
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -208,7 +208,7 @@ manifest:
       groups:
         - hal
     - name: hal_nuvoton
-      revision: 8f1bf948a94cf59926ea7b686985e1d6c6f954c7
+      revision: fe26f3a5b3b85fb6b61cc3f744f195e3ab391194
       path: modules/hal/nuvoton
       groups:
         - hal
@@ -400,7 +400,7 @@ manifest:
       groups:
         - crypto
     - name: trusted-firmware-a
-      revision: 44bcc378b6ec4af8693d008f43983e488f1f5740
+      revision: 4aef38a5bf03edfa615c1f8af5a49e7065f9fb3f
       path: modules/tee/tf-a/trusted-firmware-a
       groups:
         - tee

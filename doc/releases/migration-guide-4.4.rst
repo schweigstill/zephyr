@@ -590,6 +590,10 @@ Ethernet
 
 * The ``phy-handle`` property of :dtcompatible:`microchip,lan865x` must now be set to the phy node.
 
+* ``CONFIG_NET_DSA_DEPRECATED`` has been removed. The drivers for the compatibles
+  ``microchip,ksz8463``, ``microchip,ksz8794`` and ``microchip,ksz8863`` were removed, as they
+  haven't been migrated to the new DSA subsystem. (:github:`105926`)
+
 File System
 ===========
 
@@ -1016,6 +1020,13 @@ USB
 
 * :dtcompatible:`maxim,max3421e_spi` has been renamed to :dtcompatible:`maxim,max3421e-spi`.
 
+* UVC device application API got modified:
+
+  * ``uvc_set_video_dev`` has been renamed to :c:func:`uvc_device_init`
+  * ``uvc_add_format`` has been renamed to :c:func:`uvc_device_add_format`
+  * :c:func:`uvc_device_enable` has been introduced
+  * :c:func:`uvc_device_shutdown` has been introduced
+
 USB-C
 =====
 
@@ -1139,6 +1150,13 @@ Bluetooth HCI
 
 Networking
 **********
+
+* :c:struct:`wifi_channel_info` gained a ``band`` field for set-channel. Behaviour
+  is backwards compatible for 2.4 GHz (channels 1–14) and 5 GHz (36–165): omit or
+  leave ``band`` as :c:macro:`WIFI_FREQ_BAND_UNKNOWN` and the driver infers the
+  band. For 6 GHz, set ``band`` to :c:macro:`WIFI_FREQ_BAND_6_GHZ` (channel
+  numbers overlap 1–14 with 2.4 GHz). Recompile so ``sizeof(struct
+  wifi_channel_info)`` is correct when calling net_mgmt.
 
 * Networking APIs found in
 
