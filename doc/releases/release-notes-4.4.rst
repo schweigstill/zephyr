@@ -49,6 +49,8 @@ The following CVEs are addressed by this release:
 * :cve:`2026-0849` `Zephyr project bug tracker GHSA-ff4p-3ggg-prp6
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-ff4p-3ggg-prp6>`_
 
+* :cve:`2026-1677` Under embargo until 2026-04-15
+
 * :cve:`2026-1678` `Zephyr project bug tracker GHSA-536f-h63g-hj42
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-536f-h63g-hj42>`_
 
@@ -1005,6 +1007,7 @@ New Drivers
 
 * Firmware
 
+   * :dtcompatible:`arm,scmi-smc` (:github:`103584`)
    * :dtcompatible:`arm,scmi-system` (:github:`99037`)
    * :dtcompatible:`qemu,fw-cfg-ioport` (:github:`103717`)
    * :dtcompatible:`qemu,fw-cfg-mmio` (:github:`103717`)
@@ -1431,6 +1434,7 @@ New Samples
 * :zephyr:code-sample:`regulator_shell`
 * :zephyr:code-sample:`renesas_lvd`
 * :zephyr:code-sample:`rtk0eg0019b01002bj`
+* :zephyr:code-sample:`scmi`
 * :zephyr:code-sample:`sct2024`
 * :zephyr:code-sample:`shell-devmem-load`
 * :zephyr:code-sample:`stm32_pwm_mastermode`

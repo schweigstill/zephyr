@@ -23,6 +23,7 @@ the :ref:`release notes<zephyr_4.4>`.
 Common
 ******
 
+* The minimum required Zephyr SDK version is now 1.0.0.
 * The minimum required Python version is now 3.12 (from 3.10).
 
 Build System
@@ -594,6 +595,9 @@ Ethernet
   ``microchip,ksz8463``, ``microchip,ksz8794`` and ``microchip,ksz8863`` were removed, as they
   haven't been migrated to the new DSA subsystem. (:github:`105926`)
 
+* Ethernet drivers no longer need to call :c:func:`net_if_set_link_addr` themselves, when
+  the mac address is changed via ``ETHERNET_CONFIG_TYPE_MAC_ADDRESS``. (:github:`105931`)
+
 File System
 ===========
 
@@ -1019,6 +1023,8 @@ USB
 ===
 
 * :dtcompatible:`maxim,max3421e_spi` has been renamed to :dtcompatible:`maxim,max3421e-spi`.
+* USB control transfer buffer allocation has been moved away from UDC to USB device_next.
+  Out-of-tree UDC drivers will have to be reworked. (:github:`103493`).
 
 * UVC device application API got modified:
 
