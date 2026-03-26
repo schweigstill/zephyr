@@ -802,6 +802,7 @@ Build Dashboard:
     - grahamroff-dev
   collaborators:
     - mbolivar
+    - kartben
   files:
     - scripts/dashboard/
   labels:
@@ -6147,6 +6148,7 @@ West:
     - nika-nordic
     - nordic-krch
     - carlescufi
+    - hakonfam
   collaborators:
     - kl-cruz
     - magp-nordic
@@ -6155,6 +6157,11 @@ West:
     - adamkondraciuk
     - lstnl
     - rlubos
+    - "57300"
+    - jonathannilsen
+    - karstenkoenig
+    - SebastianBoe
+    - kyberdin
   files:
     - modules/hal_nordic/
   labels:

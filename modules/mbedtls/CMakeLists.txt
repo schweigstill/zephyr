@@ -20,8 +20,8 @@ if(CONFIG_MBEDTLS)
     zephyr_link_libraries(mbedTLS)
 
     target_compile_definitions(mbedTLS INTERFACE
-      MBEDTLS_CONFIG_FILE="${CONFIG_MBEDTLS_CFG_FILE}"
-      TF_PSA_CRYPTO_CONFIG_FILE="${CONFIG_TF_PSA_CRYPTO_CFG_FILE}"
+      MBEDTLS_CONFIG_FILE="${CONFIG_MBEDTLS_CONFIG_FILE}"
+      TF_PSA_CRYPTO_CONFIG_FILE="${CONFIG_TF_PSA_CRYPTO_CONFIG_FILE}"
     )
 
     # Some CMake variables that are used in Mbed TLS build
@@ -101,11 +101,6 @@ if(CONFIG_MBEDTLS)
     # Lib mbedtls_external depends on libgcc (I assume?) so to allow
     # mbedtls_external to link with gcc we need to ensure it is placed
     # after mbedtls_external on the linkers command line.
-  else()
-    # If none of either CONFIG_MBEDTLS_BUILTIN or CONFIG_MBEDTLS_LIBRARY
-    # are defined the users need add a custom Kconfig choice to the
-    # MBEDTLS_IMPLEMENTATION and manually add the mbedtls library and
-    # included the required directories for mbedtls in their projects.
   endif()
 
   if(CONFIG_MBEDTLS_TLS_VERSION_1_2 OR CONFIG_MBEDTLS_TLS_VERSION_1_3)
