@@ -185,6 +185,11 @@ Boards
   Zephyr is expected to execute in the non-secure state of the processor, the board or project
   must explicitly enable :kconfig:option:`CONFIG_TRUSTED_EXECUTION_NON_SECURE`.
 
+* The following WCH SoC Kconfigs have been renamed. Kconfig/CMake/code
+  needs to be updated if they reference the old Kconfigs:
+
+  * ``CONFIG_SOC_SERIES_CH32V00X`` with :kconfig:option:`CONFIG_SOC_SERIES_QINGKE_V2C`
+
 Device Drivers and Devicetree
 *****************************
 
@@ -449,8 +454,9 @@ Devicetree
 ==========
 
 * :ref:`dt-bindings` are no longer allowed to specify any default values for
-  the ``#address-cells`` and ``#size-cells`` properties. The semantics for
+  the ``status`` and ``#address-cells``, ``#size-cells`` properties. The semantics for
   these properties are defined in Devicetree `Specification
+  <https://www.devicetree.org/specifications>`_ section 2.3.4 and `Specification
   <https://www.devicetree.org/specifications>`_ section 2.3.5 and users should
   not try to override them with their own defaults.
 
@@ -459,6 +465,8 @@ Devicetree
   .. code-block:: yaml
 
      properties:
+       "status":
+         default: ...             <---- any default is a build error
        "#address-cells":
          default: ...             <---- any default is a build error
        "#size-cells":
@@ -566,6 +574,9 @@ Ethernet
   * :dtcompatible:`vnd,ethernet` (:github:`96598`)
   * :dtcompatible:`wiznet,w5500` (:github:`100919`)
   * :dtcompatible:`snps,designware-ethernet` (:github:`105090`)
+
+  MAC address should now be set as a child node of a :dtcompatible:`nvmem-layout`.
+  See the documentation of :ref:`MAC address configuration <mac_address_config>`.
 
 * The ``fixed-link`` property has been removed from :dtcompatible:`ethernet-phy`. Use
   the new :dtcompatible:`ethernet-phy-fixed-link` compatible instead, if that functionality
@@ -982,6 +993,11 @@ STM32
   is now selected automatically based on devicetree configuration: instances with either of
   the ``cs-gpios`` or new ``st,soft-nss`` property operate in "Soft NSS" mode, while all other
   instances operate in "Hard NSS" mode.
+
+* To ensure that the SPI is functional at any frequency, all SPI pins are now configured with a
+  ``very-high-speed`` slew-rate by default. This may result in higher power consumption.
+  The slew-rate value can be overridden in board's dts or in overlays to a slower speed in order to
+  decrease power consumption.
 
 * :kconfig:option:`CONFIG_NUM_IRQS` is computed automatically based on active (``status = "okay";``)
   devices by using the new ``dt_highest_controller_irq_number`` Kconfig preprocessor function.
