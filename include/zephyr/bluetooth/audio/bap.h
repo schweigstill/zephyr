@@ -933,8 +933,12 @@ struct bt_bap_stream {
 	 */
 	const struct bt_audio_codec_cfg *codec_cfg;
 
-	/** QoS Configuration */
-	struct bt_bap_qos_cfg *qos;
+	/** QoS Configuration
+	 *
+	 * Only valid if the endpoint for this stream is non-NULL and the state is
+	 * @ref BT_BAP_EP_STATE_QOS_CONFIGURED or higher.
+	 */
+	const struct bt_bap_qos_cfg *qos;
 
 	/** Audio stream operations */
 	struct bt_bap_stream_ops *ops;
@@ -1627,7 +1631,7 @@ struct bt_bap_unicast_group_stream_param {
 	struct bt_bap_stream *stream;
 
 	/** The QoS settings for the stream object. */
-	struct bt_bap_qos_cfg *qos;
+	const struct bt_bap_qos_cfg *qos;
 };
 
 /**
@@ -1792,13 +1796,17 @@ int bt_bap_unicast_group_foreach_stream(struct bt_bap_unicast_group *unicast_gro
 struct bt_bap_unicast_group_info {
 	/** Presentation delay for sink ASEs
 	 *
-	 * Will be @ref BT_BAP_PD_UNSET if no sink ASEs have been QoS configured
+	 * Will be @ref BT_BAP_PD_UNSET if no sink streams have been added to group.
+	 * The value does not reflect what has been configured on any remote ASEs, but only the
+	 * local value from when the group was created or reconfigured.
 	 */
 	uint32_t sink_pd;
 
 	/** Presentation delay for source ASEs
 	 *
-	 * Will be @ref BT_BAP_PD_UNSET if no source ASEs have been QoS configured
+	 * Will be @ref BT_BAP_PD_UNSET if no source streams have been added to group.
+	 * The value does not reflect what has been configured on any remote ASEs, but only the
+	 * local value from when the group was created or reconfigured.
 	 */
 	uint32_t source_pd;
 };
@@ -2346,7 +2354,7 @@ struct bt_bap_broadcast_source_param {
 	struct bt_bap_broadcast_source_subgroup_param *params;
 
 	/** Quality of Service configuration. */
-	struct bt_bap_qos_cfg *qos;
+	const struct bt_bap_qos_cfg *qos;
 
 	/**
 	 * @brief Broadcast Source packing mode.

@@ -95,6 +95,20 @@ Bluetooth Audio
   as :c:func:`bt_cap_commander_broadcast_reception_start` now ensures this when
   :c:member:`bt_cap_commander_cb.broadcast_reception_start` is called. This also applies for
   :c:func:`bt_cap_commander_broadcast_reception_stop` in a similar manner. (:github:`101070`)
+* :c:member:`bt_bap_stream.qos` is now ``const``, to better reflect that it is a read-only
+  value. Any non-read uses of it will need to be set with the appropriate operations such as
+  :c:func:`bt_bap_unicast_group_create`, :c:func:`bt_bap_unicast_group_reconfig`,
+  :c:func:`bt_bap_broadcast_source_create` or :c:func:`bt_bap_broadcast_source_reconfig`.
+  (:github:`104887`)
+* Almost all API uses of ``struct bt_bap_qos_cfg *`` is now const, which means that once the
+  ``qos`` has been stored in a parameter struct like
+  :c:struct:`bt_bap_broadcast_source_param` or
+  :c:struct:`bt_bap_unicast_group_stream_param`, then the parameter's pointer cannot be used
+  to modify the ``qos``, and the actual definition of the struct should be modified instead.
+  (:github:`104219`)
+* :c:member:`bt_bap_unicast_group_info.sink_pd` and :c:member:`bt_bap_unicast_group_info.source_pd`
+  now reflect the local values defined for the group, and not the values configured for any remote
+  ASEs. (:github:`104887`)
 
 Bluetooth HCI
 =============
@@ -107,6 +121,12 @@ Bluetooth HCI
 Networking
 **********
 
+Ethernet
+========
+
+* :kconfig:option:`CONFIG_NET_DEFAULT_IF_ETHERNET` now allows to get the first ethernet interface,
+  instead of the first between ethernet and wifi.
+
 Other subsystems
 ****************
 
@@ -116,6 +136,9 @@ Other subsystems
 
 Modules
 *******
+
+* Support for the `CANopenNode <https://github.com/CANopenNode/CANopenNode>`_ protocol stack was
+  moved to an :ref:`external module<external_module_canopennode>`.
 
 hal_nxp
 =======
