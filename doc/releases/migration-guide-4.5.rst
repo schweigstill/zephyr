@@ -53,6 +53,16 @@ Clock Control
   RT11xx overlays should be updated using the mapping
   ``loop-div = clock-mult * 2`` and ``post-div = clock-div``.
 
+Digital Microphone
+==================
+
+* The DMIC driver backend API now uses :c:struct:`dmic_driver_api` instead of ``struct _dmic_ops``.
+
+  Out-of-tree DMIC drivers must rename their backend API struct definitions and switch their API
+  instances to ``DEVICE_API(dmic, ...)``. See :github:`107695` for examples of how in-tree drivers
+  have been updated. Application code using :c:func:`dmic_configure`, :c:func:`dmic_trigger`, and
+  :c:func:`dmic_read` is not impacted.
+
 Flash
 =====
 * :dtcompatible:`jedec,spi-nand` now requires a ``plane-bytes`` property, which indicates the size
@@ -109,6 +119,11 @@ Bluetooth Audio
 * :c:member:`bt_bap_unicast_group_info.sink_pd` and :c:member:`bt_bap_unicast_group_info.source_pd`
   now reflect the local values defined for the group, and not the values configured for any remote
   ASEs. (:github:`104887`)
+* :c:func:`bt_bap_unicast_client_discover` and :c:func:`bt_bap_broadcast_assistant_discover` now
+  require that the connection has already gone through the pairing process and meets the security
+  requirements of BAP before doing any discovery. In most cases this requires a call to
+  :c:func:`bt_conn_set_security` for new devices. Bonded devices that reconnect should not require
+  anything.
 
 Bluetooth HCI
 =============
