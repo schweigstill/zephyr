@@ -154,7 +154,7 @@
 		};
 
 		gpios: gpio@20000000 {
-			compatible = "bflb,bl61x-gpio";
+			compatible = "bflb,bl61x_808-gpio";
 			reg = <0x20000000 0x1000>;
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -207,6 +207,12 @@
 
 			interrupts = <41 1>;
 			interrupt-parent = <&clic>;
+		};
+
+		tsen: tsen {
+			compatible = "bflb,tsen";
+			io-channels = <&adc0 0>;
+			status = "disabled";
 		};
 
 		sec_eng_trng: trng@20004000 {

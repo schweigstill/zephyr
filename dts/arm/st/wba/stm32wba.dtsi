@@ -186,7 +186,8 @@
 
 			flash0: flash@8000000 {
 				compatible = "st,stm32-nv-flash", "soc-nv-flash";
-
+				#address-cells = <1>;
+				#size-cells = <1>;
 				write-block-size = <16>;
 				erase-block-size = <8192>;
 				/* maximum erase time(ms) for a 8K sector */
@@ -574,11 +575,15 @@
 
 	bt_hci_wba: bt_hci_wba {
 		compatible = "st,hci-stm32wba";
+		interrupt-parent = <&nvic>;
+		interrupt-names = "radio";
 		status = "okay";
 	};
 
 	ieee802154: ieee802154 {
 		compatible = "st,stm32wba-ieee802154";
+		interrupt-parent = <&nvic>;
+		interrupt-names = "radio";
 		status = "disabled";
 	};
 
