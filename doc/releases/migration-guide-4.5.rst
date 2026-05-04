@@ -29,6 +29,9 @@ Build System
 Kernel
 ******
 
+* ``_k_neg_eagain`` has been renamed to ``_errno_neg_egain`` as ``errno`` has been migrated out of
+  kernel into ``lib/libc/common``.
+
 Boards
 ******
 
@@ -70,6 +73,10 @@ Ethernet
   been removed. :c:func:`phy_set_plca_cfg` together with :c:func:`net_eth_get_phy` should be
   used instead to set these parameters (:github:`108136`).
 
+* In the functions implemented by the :c:struct:`ethernet_api` a additional argument was added for
+  a pointer to :c:struct:`net_if`. This api is not directly exposed to the application, so only
+  out-of-tree drivers need to be updated. (:github:`106086`)
+
 Flash
 =====
 * :dtcompatible:`jedec,spi-nand` now requires a ``plane-bytes`` property, which indicates the size
@@ -94,6 +101,14 @@ STM32
 * SoC DTSI files now consistently use interrupt priority zero for all peripherals.
   Applications must now explicitly configure interrupt priorities using Devicetree
   if they previously relied on the values found in SoC DTSI files. (:github:`106188`)
+
+WiFi
+====
+
+* In the functions implemented by the :c:struct:`net_wifi_mgmt_offload`, internally
+  :c:struct:`ethernet_api` and :c:struct:`wifi_mgmt_ops`, a additional argument was added for
+  a pointer to :c:struct:`net_if`. This api is not directly exposed to the application, so only
+  out-of-tree drivers need to be updated. (:github:`106086`)
 
 .. zephyr-keep-sorted-stop
 
@@ -173,6 +188,19 @@ Bluetooth Audio
 
 .. zephyr-keep-sorted-stop
 
+Bluetooth Classic
+=================
+
+* The BR/EDR specific callbacks ``role_changed`` and ``br_mode_changed`` in
+  :c:struct:`bt_conn_cb` have been moved into a new sub-struct
+  :c:struct:`bt_conn_br_cb`, accessible via the ``br`` member. Application code
+  using these callbacks must update the designated initializers:
+
+  * ``.role_changed`` → ``.br.role_changed``
+  * ``.br_mode_changed`` → ``.br.mode_changed``
+
+  (:github:`108022`)
+
 Bluetooth HCI
 =============
 
@@ -230,3 +258,8 @@ Mbed TLS
 
 Architectures
 *************
+
+* A new architecture primitive, ``arch_cpu_irqs_are_enabled()``, has been added.
+  It returns the current interrupt-enable state of the calling CPU without
+  modifying it, complementing ``arch_irq_unlocked()`` which inspects a saved
+  key.  Out-of-tree architecture ports must provide an implementation.
