@@ -147,7 +147,7 @@ manifest:
       groups:
         - fs
     - name: hal_adi
-      revision: b93ba93f7a9f915a5833d735281c1dba1ad1f026
+      revision: c8aa8d545635a5821045ab500c70b878bd55f15d
       path: modules/hal/adi
       groups:
         - hal
@@ -168,11 +168,11 @@ manifest:
         - hal
     - name: hal_bouffalolab
       path: modules/hal/bouffalolab
-      revision: 8ee5e121da0d3800f0723280b6640038cb1bad95
+      revision: 0100626b16e63ca5e1238a9ffba90d103e61c227
       groups:
         - hal
     - name: hal_espressif
-      revision: 15789ec576bdb3397c6fc39542b0d9b534d98d2d
+      revision: 8344b10d3a01392fc204ce7f80c2167eed494c0e
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
