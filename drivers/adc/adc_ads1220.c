@@ -33,7 +33,8 @@ LOG_MODULE_REGISTER(ads1220, CONFIG_ADC_LOG_LEVEL);
 
 #define IDAC1_ROUTING(n)  (uint8_t)(IDAC1_ROUTING_INST(n) << ADS1220_REG3_I1MUX_POS)
 #define IDAC2_ROUTING(n)  (uint8_t)(IDAC2_ROUTING_INST(n) << ADS1220_REG3_I2MUX_POS)
-#define MAGNITUDE_UA(n)   (uint8_t)(DT_INST_PROP_OR(n, idac_magnitude_microamp, 0))
+//#define MAGNITUDE_UA(n)   (uint8_t)(DT_INST_PROP_OR(n, idac_magnitude_microamp, 0))
+#define MAGNITUDE_UA(n)   (uint16_t)(DT_INST_PROP_OR(n, idac_magnitude_microamp, 0))
 #define DATA_RATE(n)      (uint8_t)(DT_INST_PROP_OR(n, data_rate, 0))
 #define OPERATING_MODE(n) (uint8_t)(DT_INST_PROP_OR(n, operating_mode, 0))
 
