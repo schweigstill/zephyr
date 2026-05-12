@@ -1801,7 +1801,7 @@ Documentation Infrastructure:
     - tests/drivers/firmware/
     - include/zephyr/drivers/firmware/
     - dts/bindings/firmware/
-    - doc/hardware/arch/arm-scmi.rst
+    - doc/hardware/firmware/
     - samples/drivers/firmware/
   labels:
     - "area: Firmware"
@@ -1916,7 +1916,6 @@ Documentation Infrastructure:
   status: maintained
   maintainers:
     - rriveramcrus
-  collaborators:
     - Liam-Ogletree
   files:
     - drivers/haptics/
@@ -2443,6 +2442,8 @@ Documentation Infrastructure:
   status: maintained
   maintainers:
     - danieldegrasse
+  collaborators:
+    - lucien-nxp
   files:
     - drivers/sdhc/
     - tests/drivers/sdhc/
@@ -5670,6 +5671,17 @@ Tracing:
     - "area: tracing"
   tests:
     - tracing
+
+Trenz Electronic Platforms:
+  status: maintained
+  maintainers:
+    - yashi
+  files:
+    - boards/trenz/
+  labels:
+    - "platform: Trenz Electronic"
+  description: >-
+    Trenz Electronic development boards.
 
 Twister:
   status: maintained
