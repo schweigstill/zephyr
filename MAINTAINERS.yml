@@ -590,6 +590,7 @@ Bluetooth HCI:
     - HoZHel
     - cvinayak
     - HaavardRei
+    - merin-infineon
   files:
     - include/zephyr/drivers/bluetooth/
     - include/zephyr/drivers/bluetooth.h
@@ -1157,6 +1158,7 @@ Demand Paging:
     - ceolin
     - peter-mitsis
     - nashif
+    - npitre
   files:
     - subsys/mem_mgmt/demand_paging/
     - tests/kernel/mem_protect/demand_paging/
@@ -1666,8 +1668,6 @@ Documentation Infrastructure:
 "Drivers: EDAC":
   status: maintained
   maintainers:
-    - finikorg
-  collaborators:
     - yvesll
   files:
     - drivers/edac/
@@ -2602,6 +2602,7 @@ Documentation Infrastructure:
     - andyross
   collaborators:
     - teburd
+    - npitre
   files:
     - drivers/timer/
     - include/zephyr/drivers/timer/
@@ -3088,6 +3089,7 @@ Infineon Platforms:
     - jsbatch
     - Peterson-Brett
     - lauracarlesso
+    - merin-infineon
   files:
     - boards/cypress/
     - boards/infineon/
@@ -3295,6 +3297,7 @@ Kernel:
     - cfriedt
     - npitre
     - TaiJuWu
+    - Mattemagikern
   files:
     - doc/kernel/
     - include/zephyr/kernel*.h
@@ -5551,6 +5554,7 @@ Test Framework (Ztest):
     - jeremybettis
     - yperess
     - asemjonovs
+    - Mattemagikern
   files:
     - subsys/testsuite/
     - tests/ztest/
@@ -5562,6 +5566,22 @@ Test Framework (Ztest):
     - "area: Testsuite"
   tests:
     - testing
+
+Testing:
+  status: maintained
+  maintainers:
+    - PerMac
+    - hakehuang
+  collaborators:
+    - nashif
+  files: []
+  description: >-
+    This area is for testing activities on hardware and in emulators. It is not
+    meant to be a catch-all for tests, but rather a place to identify
+    collaboratorts and files related to testing activities that don't fit in
+    other areas.
+    Anyone involved with testing and filing/triaging issues who are not active
+    in other areas are encouraged to be listed here as collaborators.
 
 Testing with Renode:
   # This area is to be converted to a subarea
@@ -6200,6 +6220,7 @@ West:
     - jsbatch
     - Peterson-Brett
     - lauracarlesso
+    - merin-infineon
   files:
     - modules/Kconfig.infineon
     - modules/hal_infineon/
@@ -6838,6 +6859,14 @@ West:
   files: []
   labels:
     - "area: Rust"
+
+Wiki:
+  status: maintained
+  maintainers:
+    - kartben
+  collaborators:
+    - SusanRemm
+  files: []
 
 Wurth Elektronik Platforms:
   status: maintained
