@@ -214,6 +214,12 @@ Sensor
   GIRQ configuration is now handled via the ``microchip,dmec-ecia-girq`` binding include
   (:github:`104808`).
 
+Serial
+======
+
+* The return type of :c:func:`uart_irq_update` is now ``void`` instead of ``int``.
+  (:github:`105231`)
+
 STM32
 =====
 
@@ -232,6 +238,14 @@ Syscon
   ``uint32_t`` for the register offset parameter instead of ``uint16_t``. This allows for
   larger register offsets. Code that explicitly declares ``uint16_t`` variables for the
   register parameter or implements the syscon driver API functions may need to be updated.
+
+USB
+===
+
+* On STM32N6, the ``clocks`` cell which configures the USBPHYC clock mux has been moved
+  from :samp:`usbotg_hs{N}` to :samp:`usbphyc{N}` nodes at SoC DTSI level. Boards which
+  use an STM32N6 SoC with custom clock mux configuration must now set the ``clocks``
+  property on :samp:`usbphyc{N}` instead of :samp:`usbotg_hs{N}`. (:github:`107813`)
 
 WiFi
 ====
@@ -374,6 +388,20 @@ PTP
     :kconfig:option:`CONFIG_PTP_UDP_IPV4_PROTOCOL`
   * :kconfig:option:`CONFIG_PTP_UDP_IPv6_PROTOCOL` to
     :kconfig:option:`CONFIG_PTP_UDP_IPV6_PROTOCOL`
+
+gPTP
+====
+
+* Converted ``int port`` to ``uint16_t gptp_port`` in
+  :c:struct:`ethernet_context` to make it clear that the field used only
+  by the gPTP stack to store the gPTP port number.
+
+* Used ``uint16_t`` for ``nb_ports`` in :c:struct:`gptp_default_ds` per
+  IEEE 1588 standard.
+
+* Removed ``net_eth_get_ptp_port`` and ``net_eth_set_ptp_port``.
+  New :c:func:`gptp_get_port_number` and :c:func:`gptp_set_port_number`
+  can be used instead.
 
 Other subsystems
 ****************

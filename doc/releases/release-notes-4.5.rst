@@ -118,6 +118,10 @@ New Boards
 
   * :zephyr:board:`Arduino Nesso N1 <arduino_nesso_n1>` (``arduino_nesso_n1``)
 
+* Seeed
+
+  * :zephyr:board:`Seeed Wio Tracker L1 <wio_tracker_l1>` (``wio_tracker_l1``)
+
 New Shields
 ***********
 
@@ -156,6 +160,7 @@ Libraries / Subsystems
     (:kconfig:option:`CONFIG_LORA_MODULE_BACKEND_NATIVE`) that implements
     LoRaWAN 1.0.x Class A directly on top of the LoRa radio driver, without
     the Semtech LoRaMac-node dependency.  Currently supports the EU868 region.
+  * :c:member:`lora_modem_config.sync_word`
 
 Other notable changes
 *********************
