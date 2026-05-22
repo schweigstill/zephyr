@@ -111,7 +111,11 @@ New APIs and options
 
   * :c:member:`pcm_stream_cfg.gain_db`
 
-* :c:func:`lora_recv_duty_cycle_async`
+* LoRa
+
+  * :c:func:`lora_recv_duty_cycle`
+  * :c:func:`lora_recv_duty_cycle_async`
+
 * :c:struct:`sys_ringq` (see :ref:`fixed_size_ringq_api`)
 
 .. zephyr-keep-sorted-stop
@@ -164,6 +168,11 @@ New Samples
 
 Libraries / Subsystems
 **********************
+
+* DFU
+
+  * Added :kconfig:option:`CONFIG_IMG_CUSTOM_SECTOR_SIZE` to allow MCUboot to use a different
+    sector size for reducing the swap-using-offset status area size.
 
 * LoRa / LoRaWAN
 
