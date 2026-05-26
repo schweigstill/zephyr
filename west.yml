@@ -258,7 +258,7 @@ manifest:
       groups:
         - hal
     - name: hal_stm32
-      revision: ff0f1fa5ab4e6559cfbb61d5270d38caad9ad0b0
+      revision: ad6ac613bb4552d5a2849a10440004a17a606625
       path: modules/hal/stm32
       groups:
         - hal
@@ -294,7 +294,7 @@ manifest:
         - hal
     - name: hostap
       path: modules/lib/hostap
-      revision: 45e1b7c2b186d39eae2acad37ade4a079726328b
+      revision: 1eae1d6f775d1a6edd5ea30a71bdb69a6f925dc3
     - name: liblc3
       revision: 48bbd3eacd36e99a57317a0a4867002e0b09e183
       path: modules/lib/liblc3
@@ -335,7 +335,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: e36d3c8d6ca5e0ed1f510f2a7d110f405a7c396b
+      revision: 511dc9e28f223d6b158740b66a702209531361ff
       path: bootloader/mcuboot
       groups:
         - bootloader
@@ -395,7 +395,7 @@ manifest:
         - testing
         - tee
     - name: tf-psa-crypto
-      revision: dc575a2ddcc8cb16275d24c42a52eaf79ebe2231
+      revision: efdf9e209cc3b2c7be93ac81c7c96cd2550bbe27
       path: modules/crypto/tf-psa-crypto
       groups:
         - crypto
