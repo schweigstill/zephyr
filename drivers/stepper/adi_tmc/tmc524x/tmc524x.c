@@ -18,6 +18,7 @@
 #include <adi_tmc_uart.h>
 #include <adi_tmc5xxx_common.h>
 
+#include "tmc524x_reg.h"
 #include "tmc524x.h"
 
 #include <zephyr/logging/log.h>
@@ -255,7 +256,7 @@ static void log_stallguard(const struct device *dev, const uint32_t drv_status)
 	int32_t position;
 	int err;
 
-	err = read_actual_position(dev, &position);
+	err = tmc524x_read_actual_position(dev, &position);
 	if (err != 0) {
 		LOG_ERR("%s: Failed to read XACTUAL register", dev->name);
 		return;
@@ -292,6 +293,10 @@ static void rampstat_work_handler(struct k_work *work)
 	const struct device *motion_controller = config->motion_controller;
 	const struct device *stepper_driver = config->stepper_driver;
 
+	// TODO: remove unused suppression
+	(void)motion_controller;
+	(void)stepper_driver;
+
 	__ASSERT_NO_MSG(dev);
 
 	uint32_t drv_status;
@@ -322,7 +327,7 @@ static void rampstat_work_handler(struct k_work *work)
 		return;
 	}
 
-	const uint8_t ramp_stat_values = FIELD_GET(TMC5XXX_RAMPSTAT_INT_MASK, rampstat_value);
+	const uint8_t ramp_stat_values = FIELD_GET(TMC524X_RAMPSTAT_INT_MASK, rampstat_value);
 
 	if (ramp_stat_values > 0) {
 		switch (ramp_stat_values) {
@@ -523,7 +528,8 @@ static int tmc524x_init(const struct device *dev)
 		(TMC524X_CONFIG_SPI(inst)),							   \
 		(TMC524X_CONFIG_UART(inst))),                                                      \
 		 .gconf = ((DT_INST_PROP(inst, en_pwm_mode) << TMC524X_GCONF_EN_PWM_MODE_SHIFT) |  \
-			   (DT_INST_PROP(inst, test_mode) << TMC524X_GCONF_TEST_MODE_SHIFT) |      \
+			   (DT_INST_PROP(inst, fast_standstill) << TMC524X_GCONF_FAST_STANDSTILL_SHIFT) |      \
+			   (DT_INST_PROP(inst, length_step_pulse) << TMC524X_GCONF_LENGTH_STEP_PULSE_SHIFT) |      \
 			   (DT_INST_PROP(inst, shaft) << TMC524X_GCONF_SHAFT_SHIFT) |              \
 			   (DT_INST_NODE_HAS_PROP(inst, diag0_gpios)                               \
 				    ? BIT(TMC524X_GCONF_DIAG0_INT_PUSHPULL_SHIFT)                  \
