@@ -9,7 +9,7 @@ include:
   - name: adi,trinamic-gconf.yaml
     property-allowlist:
       - en-pwm-mode
-      - test-mode
+#      - test-mode
 
 properties:
   shaft:
@@ -26,3 +26,15 @@ properties:
 
       Hint: µstep velocity v[Hz] µsteps / s v[Hz] = v[52xx] * ( fCLK[Hz]/2 / 2^23 )
             where v[52xx] is the value written to the TMC524X.
+
+  fast-standstill:
+    type: boolean
+    description: |
+      1: x
+
+  length-step-pulse:
+    type: int
+    description: |
+      1: x
+
+
