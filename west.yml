@@ -188,7 +188,7 @@ manifest:
       groups:
         - hal
     - name: hal_infineon
-      revision: 0c36e77f427236fbc7036eab0dd6e8af9539869d
+      revision: d9e6846717489b75ebc51c9ccac8ddc650d2a32f
       path: modules/hal/infineon
       groups:
         - hal
@@ -234,7 +234,7 @@ manifest:
         - hal
     - name: hal_renesas
       path: modules/hal/renesas
-      revision: b994af098811b0ea02d5388efeefd0ac54f082e3
+      revision: 29d0d3b9c7f9e3929839c74a6cb10c487c24994f
       groups:
         - hal
     - name: hal_rpi_pico
@@ -324,7 +324,7 @@ manifest:
       revision: 85aa60d18b3d5e5588d7b247abf90198f07c8a63
       path: modules/lib/gui/lvgl
     - name: mbedtls
-      revision: 6a08a7eb799853ce2a9053d24ecde31bf3a1322c
+      revision: 554163f6f7b2ec71fed9b423e81f2217a8615d29
       path: modules/crypto/mbedtls
       groups:
         - crypto
@@ -383,7 +383,7 @@ manifest:
       groups:
         - debug
     - name: tf-m-tests
-      revision: 46b82fabd35eced75d6efbd219ccb26f1818b4d3
+      revision: 2f9d323198329cc3df0d6145ec924222cf4ae440
       path: modules/tee/tf-m/tf-m-tests
       groups:
         - testing
