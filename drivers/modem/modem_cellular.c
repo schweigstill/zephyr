@@ -579,7 +579,9 @@ MODEM_CHAT_MATCH_DEFINE(cimi_match __maybe_unused, "", "", modem_cellular_chat_o
 MODEM_CHAT_MATCH_DEFINE(cgmi_match __maybe_unused, "", "", modem_cellular_chat_on_cgmi);
 MODEM_CHAT_MATCH_DEFINE(cgmr_match __maybe_unused, "", "", modem_cellular_chat_on_cgmr);
 
-MODEM_CHAT_MATCHES_DEFINE(abort_matches, MODEM_CHAT_MATCH("ERROR", "", NULL));
+MODEM_CHAT_MATCHES_DEFINE(abort_matches,
+			  MODEM_CHAT_MATCH("ERROR", "", NULL),
+			  MODEM_CHAT_MATCH("+CME ERROR", "", NULL));
 
 MODEM_CHAT_MATCHES_DEFINE(__maybe_unused dial_abort_matches,
 			  MODEM_CHAT_MATCH("ERROR", "", NULL),
@@ -2382,6 +2384,7 @@ int modem_cellular_init(const struct device *dev)
 			.transmit_buf_size = ARRAY_SIZE(data->cmux_transmit_buf),
 			.enable_runtime_power_management = config->cmux_enable_runtime_power_save,
 			.close_pipe_on_power_save = config->cmux_close_pipe_on_power_save,
+			.no_powersave_handshake = config->cmux_no_powersave_handshake,
 			.idle_timeout = config->cmux_idle_timeout,
 		};
 
