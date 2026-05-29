@@ -713,10 +713,11 @@ class Build(Forceable):
         # to Just Work:
         #
         # west build -- -DOVERLAY_CONFIG=relative-path.conf
-        final_cmake_args = [f'-DWEST_PYTHON={pathlib.Path(sys.executable).as_posix()}',
-                            f'-DWEST_TOPDIR={west_topdir(self.source_dir)}',
-                            f'-DWEST_VERSION={str(__version__)}',
-                            f'-B{self.build_dir}',
+        final_cmake_args = [
+            f'-DWEST_PYTHON={pathlib.Path(sys.executable).as_posix()}',
+            f'-DWEST_TOPDIR={pathlib.Path(str(west_topdir(self.source_dir))).as_posix()}',
+            f'-DWEST_VERSION={str(__version__)}',
+            f'-B{self.build_dir}',
             f'-G{self.config.get("build.generator", default=DEFAULT_CMAKE_GENERATOR)}',
         ]
 
