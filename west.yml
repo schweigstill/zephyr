@@ -172,7 +172,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: e317fb14bf61a772161b3c2913451b96e751d6dc
+      revision: 1a2f973addcd12a660e84231dbcce1c34f3eaef4
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -229,7 +229,7 @@ manifest:
         - hal
     - name: hal_realtek
       path: modules/hal/realtek
-      revision: 428e4ddd2a19560cb32ddd56cbb62bf4597edafd
+      revision: 825297ca86d24286dd5c6ebb50a716c93ac29304
       groups:
         - hal
     - name: hal_renesas
@@ -399,7 +399,7 @@ manifest:
       groups:
         - tee
     - name: trusted-firmware-m
-      revision: 132f674ba028105a097ee8ac7474e31a34d856cc
+      revision: 35210614ac5ab8b3334a385a4f07dbd209390a05
       path: modules/tee/tf-m/trusted-firmware-m
       groups:
         - tee
