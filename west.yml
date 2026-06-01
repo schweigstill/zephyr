@@ -172,7 +172,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: e317fb14bf61a772161b3c2913451b96e751d6dc
+      revision: 22474f2034d4f9c3be20f6162b0e0f1518225827
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -229,7 +229,7 @@ manifest:
         - hal
     - name: hal_realtek
       path: modules/hal/realtek
-      revision: 428e4ddd2a19560cb32ddd56cbb62bf4597edafd
+      revision: beb44b18cbf3c29c4805dfb3a06f9092d0c1f2ef
       groups:
         - hal
     - name: hal_renesas
@@ -352,7 +352,7 @@ manifest:
       groups:
         - tools
     - name: nrf_hw_models
-      revision: cd44ed9674d115457fd620d5a43741576f328e4b
+      revision: 309d02c0df8625c52a6abc2fd95dc77fe80c163a
       path: modules/bsim_hw_models/nrf_hw_models
     - name: nrf_wifi
       revision: 47bd5b4ebd357ba637be0f2b092e1c0d370eea2f
@@ -399,7 +399,7 @@ manifest:
       groups:
         - tee
     - name: trusted-firmware-m
-      revision: 132f674ba028105a097ee8ac7474e31a34d856cc
+      revision: 35210614ac5ab8b3334a385a4f07dbd209390a05
       path: modules/tee/tf-m/trusted-firmware-m
       groups:
         - tee
