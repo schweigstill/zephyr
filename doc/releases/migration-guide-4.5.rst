@@ -129,6 +129,10 @@ Controller Area Network (CAN)
   controller driver backends where converted to library-specific includes. Out-of-tree drivers based
   on these backends will need to update their include directives accordingly.
 
+* The Bosch M_CAN driver now solely uses RX FIFO0 for processing received CAN frames, ensuring these
+  are processed in the order received on the bus. Out-of-tree users may want to update any
+  ``bosch,mram-cfg`` devicetree property overrides to allocate all FIFO elements to RX FIFO0.
+
 Devicetree
 ==========
 
@@ -155,6 +159,17 @@ Display
   selection have been removed in favour of setting the pixel-format property directly in devicetree
   on the SDL pseudo-device node using the PANEL_PIXEL_FORMAT_* macros from
   :zephyr_file:`include/zephyr/dt-bindings/display/panel.h`. (:github:`104099`)
+
+DMA
+===
+
+* :dtcompatible:`silabs,siwx91x-dma` has been renamed :dtcompatible:`silabs,udma`. The Kconfig
+  options have also been renamed to align with this new name (``DMA_SILABS_SIWX91X`` in
+  ``DMA_SILABS_SIWX91X_UDMA`` and ``DMA_SILABS_SIWX91X_SG_BUFFER_COUNT`` in
+  ``DMA_SILABS_SIWX91X_UDMA_DESCR_COUNT``)
+
+* To align with the other drivers, ``GPDMA_SILABS_SIWX91X_DESCRIPTOR_COUNT`` has been renamed in
+  ``DMA_SILABS_SIWX91X_GPDMA_DESCR_COUNT``.
 
 ESPI
 ====
@@ -328,11 +343,34 @@ Sensor
   GIRQ configuration is now handled via the ``microchip,dmec-ecia-girq`` binding include
   (:github:`104808`).
 
+* The devicetree compatible ``tdk,ntcg163jf103ft1`` has been renamed to
+  :dtcompatible:`tdk,ntcgxx3jx103x` to reflect that the compensation values are identical for TDK
+  NTCG thermistor parts with the same resistance (R25) and beta (B25/85) values, as indicated in the
+  part naming scheme (:github:`110123`).
+
 Serial
 ======
 
 * The return type of :c:func:`uart_irq_update` is now ``void`` instead of ``int``.
   (:github:`105231`)
+
+SPI
+===
+
+* ``SPI_SILABS_SIWX91X_GSPI_DMA`` and ``SPI_SILABS_SIWX91X_GSPI_DMA_MAX_BLOCKS`` have been removed.
+  They are replaced by ``SPI_SILABS_SIWX91X_GSPI_DMA_DESCR_COUNT`` which allow to enable DMA and
+  configure the descriptor count.
+
+Stepper
+=======
+
+* The ``activate-stallguard2``, ``stallguard-threshold-velocity`` and ``stallguard-velocity-check-interval-ms``
+  properties of :dtcompatible:`adi,tmc50xx-stepper-ctrl` and :dtcompatible:`adi,tmc51xx-stepper-ctrl` have
+  been removed. The stallguard configuration is now done at runtime using
+  :c:func:`tmc50xx_stepper_ctrl_configure_stallguard`, :c:func:`tmc51xx_stepper_ctrl_configure_stallguard`
+  and :c:struct:`tmc_stallguard_settings`. Out-of-tree drivers using these properties
+  must be updated to remove them.
+  (:github:`110062`)
 
 STM32
 =====
@@ -479,6 +517,8 @@ Bluetooth Classic
 
   (:github:`108022`)
 
+* Renamed ``BT_DEVICE_VEDNOR_ID`` to :kconfig:option:`BT_DEVICE_VENDOR_ID` to fix a typo.
+
 Bluetooth HCI
 =============
 
@@ -624,6 +664,14 @@ Other subsystems
      ZTEST_BENCHMARK_TIMED(suite, my_bench, 1000, NULL, NULL) { /* ... */ }
      ZTEST_BENCHMARK(suite, my_bench, 100, setup, teardown) { /* ... */ }
      ZTEST_BENCHMARK_TIMED(suite, my_bench, 1000, setup, teardown) { /* ... */ }
+
+Random
+======
+
+* ``CONFIG_CTR_DRBG_CSPRNG_GENERATOR`` has been removed.
+  Use :kconfig:option:`CONFIG_PSA_CSPRNG_GENERATOR` instead.
+
+* ``CONFIG_CS_CTR_DRBG_PERSONALIZATION`` has been removed. It did not have any effect.
 
 Modules
 *******
