@@ -160,6 +160,13 @@ Display
   on the SDL pseudo-device node using the PANEL_PIXEL_FORMAT_* macros from
   :zephyr_file:`include/zephyr/dt-bindings/display/panel.h`. (:github:`104099`)
 
+* The LVGL ``CONFIG_LV_Z_COLOR_24_BGR_TO_RGB`` Kconfig option has been removed. LVGL's RGB888 color
+  format stores bytes in memory as blue, green, red, which matches the in-memory layout of
+  :c:enumerator:`PIXEL_FORMAT_RGB_888`, so no channel swap is performed for displays reporting that
+  format. Displays whose framebuffer instead expects a red, green, blue byte order must now report
+  :c:enumerator:`PIXEL_FORMAT_BGR_888`, for which the LVGL glue performs the red/blue channel swap
+  automatically.
+
 DMA
 ===
 
@@ -206,6 +213,15 @@ Ethernet
   :dtcompatible:`zephyr,native-ptp-clock` has been added for the native_sim PTP clock driver.
   :kconfig:option:`CONFIG_PTP_CLOCK_NATIVE` is enabled by default when the
   :dtcompatible:`zephyr,native-ptp-clock` compatible is present.
+
+* ``port_phylink_change`` of the :c:struct:`dsa_api` is now optional.
+  The DSA driver no longer needs to call :c:func:`net_eth_carrier_on` or
+  :c:func:`net_eth_carrier_off` on PHY link change, this is now handled by the DSA core.
+  The ``void *user_data`` argument of ``port_phylink_change`` has been changed to
+  ``const struct device *dev``, so it no longer needs to be cast to obtain the device pointer.
+  Out-of-tree DSA drivers must update their ``port_phylink_change`` callback to match the new API and
+  can remove any calls to :c:func:`net_eth_carrier_on` or :c:func:`net_eth_carrier_off` from it.
+  (:github:`109671`)
 
 Flash
 =====
