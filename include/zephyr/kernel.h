@@ -3472,10 +3472,6 @@ struct k_mutex {
 #ifdef CONFIG_OBJ_CORE_MUTEX
 	struct k_obj_core obj_core;
 #endif
-#ifdef CONFIG_ASSERT
-	/** Sentinel written to K_MUTEX_MAGIC by k_mutex_init() and Z_MUTEX_INITIALIZER. */
-	uintptr_t magic;
-#endif
 /**
  * INTERNAL_HIDDEN @endcond
  */
@@ -3484,21 +3480,12 @@ struct k_mutex {
 /**
  * @cond INTERNAL_HIDDEN
  */
-#ifdef CONFIG_ASSERT
-/** Magic sentinel for k_mutex, equal to K_OBJ_TYPE_MUTEX_ID ("MUTX"). */
-#define K_MUTEX_MAGIC K_OBJ_TYPE_MUTEX_ID
-#define Z_MUTEX_MAGIC_INIT .magic = K_MUTEX_MAGIC,
-#else
-#define Z_MUTEX_MAGIC_INIT
-#endif
-
 #define Z_MUTEX_INITIALIZER(obj) \
 	{ \
 	.wait_q = Z_WAIT_Q_INIT(&(obj).wait_q), \
 	.owner = NULL, \
 	.lock_count = 0, \
 	.owner_orig_prio = K_LOWEST_APPLICATION_THREAD_PRIO, \
-	Z_MUTEX_MAGIC_INIT \
 	}
 /**
  * INTERNAL_HIDDEN @endcond
@@ -3523,10 +3510,6 @@ struct k_mutex {
  * This routine initializes a mutex object, prior to its first use.
  *
  * Upon completion, the mutex is available and does not have an owner.
- *
- * @note For dynamic allocation use k_object_alloc(K_OBJ_MUTEX) followed by
- *       k_mutex_init(). Using k_malloc() is incorrect: the object will not
- *       be registered in the kernel object table.
  *
  * @param mutex Address of the mutex.
  *
@@ -3575,8 +3558,8 @@ __syscall int k_mutex_lock(struct k_mutex *mutex, k_timeout_t timeout);
  * @param mutex Address of the mutex.
  *
  * @retval 0 Mutex unlocked.
- * @retval -EPERM The current thread does not own the mutex.
- * @retval -EINVAL The mutex is not locked.
+ * @retval -EPERM The current thread does not own the mutex
+ * @retval -EINVAL The mutex is not locked
  *
  */
 __syscall int k_mutex_unlock(struct k_mutex *mutex);
@@ -7105,6 +7088,16 @@ int k_thread_runtime_stats_enable(k_tid_t thread);
  * @return -EINVAL if invalid thread ID, otherwise 0
  */
 int k_thread_runtime_stats_disable(k_tid_t thread);
+
+/**
+ * @brief Check if runtime statistics gathering is enabled for a thread
+ *
+ * This routine checks whether the specified thread has enabled runtime statistics.
+ *
+ * @param thread ID of thread
+ * @return true if usage statistics are enabled for the given thread, otherwise false
+ */
+bool k_thread_runtime_stats_is_enabled(k_tid_t thread);
 
 /**
  * @brief Enable gathering of system runtime statistics
