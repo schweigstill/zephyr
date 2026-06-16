@@ -95,6 +95,11 @@ Boards
   Applications that relied on ``CONFIG_GPIO=y`` being the default will need to enable
   the option explicitly. (:github:`109468`)
 
+* Boards that use UF2 images that migrate to :dtcompatible:`zephyr,mapped-partition` should enable
+  HEX output in their defconfig (:kconfig:option:`CONFIG_BUILD_OUTPUT_HEX`), as the UF2 image
+  generation can no longer rely on :kconfig:option:`CONFIG_FLASH_LOAD_OFFSET` to determine the code
+  address from a BIN output. HEX to UF2 is now the default (instead of BIN). (:github:`107944`)
+
 * Ezurio bl54l15u_dvk has been removed. The bl54l15_dvk remains available and supports
   both the bl54l15 and bl54l15u variants of the module, with the same features.
   Boards using the bl54l15u_dvk should migrate to bl54l15_dvk/nrf54l15/cpuapp or
@@ -426,6 +431,10 @@ SPI
 * ``SPI_SILABS_SIWX91X_GSPI_DMA`` and ``SPI_SILABS_SIWX91X_GSPI_DMA_MAX_BLOCKS`` have been removed.
   They are replaced by ``SPI_SILABS_SIWX91X_GSPI_DMA_DESCR_COUNT`` which allow to enable DMA and
   configure the descriptor count.
+
+* The ``fifo-enable`` property of :dtcompatible:`st,stm32h7-spi` has been removed.
+  FIFO is now always used in polling and interrupt mode to enhance performance. A new property
+  ``st,fifo-threshold`` can be used to configure the FIFO threshold (default = 1). (:github:`110265`)
 
 Stepper
 =======
@@ -795,6 +804,11 @@ Mbed TLS
 * Interface CMake library ``mbedTLS`` has been renamed to ``mbedtls_iface``. The former is kept
   as an alias to the latter for backward compatibility, but it will be removed in future
   releases.
+
+Snippets
+********
+
+* Rename ``xen_dom0`` to ``xen-dom0``.
 
 Architectures
 *************

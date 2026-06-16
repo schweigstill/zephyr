@@ -162,7 +162,7 @@ manifest:
       groups:
         - hal
     - name: hal_atmel
-      revision: 8cd575049f04131e333558072484bfc6334c19c4
+      revision: 8f95c79f2a80427ef446563cc9addefa959e92a9
       path: modules/hal/atmel
       groups:
         - hal
@@ -172,7 +172,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: f3be21f2bb27535d4ac58364018cb6491d52f5dd
+      revision: 8b30e4e3d11e467bfdc04658a02f5afc3d15bd2f
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -248,7 +248,7 @@ manifest:
       groups:
         - hal
     - name: hal_silabs
-      revision: 030242dfa7e0649ff7fe764899c498f1e2c68f15
+      revision: d91d60465ca99b0a8e44a429769ee759843267f7
       path: modules/hal/silabs
       groups:
         - hal
@@ -258,7 +258,7 @@ manifest:
       groups:
         - hal
     - name: hal_stm32
-      revision: ad6ac613bb4552d5a2849a10440004a17a606625
+      revision: 8b66f0b68f40686f117179e6976f16c8103fe17f
       path: modules/hal/stm32
       groups:
         - hal
@@ -365,7 +365,7 @@ manifest:
       path: modules/lib/openthread
     - name: percepio
       path: modules/debug/percepio
-      revision: f9159fe3c79578e8d90c8593e83f9862d9b8962c
+      revision: 57358a359d95fa7239d0dccd768f587ffc8f71bb
       groups:
         - debug
     - name: picolibc
