@@ -95,10 +95,24 @@ Boards
   Applications that relied on ``CONFIG_GPIO=y`` being the default will need to enable
   the option explicitly. (:github:`109468`)
 
+* Boards that use UF2 images that migrate to :dtcompatible:`zephyr,mapped-partition` should enable
+  HEX output in their defconfig (:kconfig:option:`CONFIG_BUILD_OUTPUT_HEX`), as the UF2 image
+  generation can no longer rely on :kconfig:option:`CONFIG_FLASH_LOAD_OFFSET` to determine the code
+  address from a BIN output. HEX to UF2 is now the default (instead of BIN). (:github:`107944`)
+
 * Ezurio bl54l15u_dvk has been removed. The bl54l15_dvk remains available and supports
   both the bl54l15 and bl54l15u variants of the module, with the same features.
   Boards using the bl54l15u_dvk should migrate to bl54l15_dvk/nrf54l15/cpuapp or
   bl54l15_dvk/nrf54l15/cpuflpr as appropriate.
+
+* The default MCUboot signature type for the boards stm32h573i_dk and b_u585i_iot02a has
+  been changed from RSA-3072 to EC-P256. This affects builds that have MCUboot enabled in
+  TF-M (:kconfig:option:`CONFIG_TFM_BL2`). If you wish to keep using RSA-3072, you need
+  to set :kconfig:option:`CONFIG_TFM_MCUBOOT_SIGNATURE_TYPE` to ``"RSA-3072"``.
+  Otherwise, make sure to have your own signing keys of the signature type in use.
+
+* All Kconfigs under modules/hal_silabs/gecko were renamed from ``SOC_GECKO_*``
+  to ``SILABS_GECKO_*``. Adapt your board accordingly.
 
 Device Drivers and Devicetree
 *****************************
@@ -262,6 +276,15 @@ Flash
   of each plane in the flash device. For devices with a single plane, this should be set to the
   same value as ``size-bytes``.
 
+Fuel Gauge
+==========
+
+* Various fuel gauge property enums and union fields have been deprecated in
+  favor of new versions with explicit unit suffixes. Applications and drivers
+  should migrate to the unit-suffixed names. For example,
+  ``FUEL_GAUGE_CURRENT`` (``val.current``) is replaced by
+  ``FUEL_GAUGE_CURRENT_UA`` (``val.current_ua``).
+
 GPIO
 ====
 
@@ -412,6 +435,10 @@ SPI
   They are replaced by ``SPI_SILABS_SIWX91X_GSPI_DMA_DESCR_COUNT`` which allow to enable DMA and
   configure the descriptor count.
 
+* The ``fifo-enable`` property of :dtcompatible:`st,stm32h7-spi` has been removed.
+  FIFO is now always used in polling and interrupt mode to enhance performance. A new property
+  ``st,fifo-threshold`` can be used to configure the FIFO threshold (default = 1). (:github:`110265`)
+
 Stepper
 =======
 
@@ -441,6 +468,14 @@ STM32
   ``dmas``, ``dma-names`` (now validated against ``enum: [tx, rx]``), ``pinctrl-0``,
   ``pinctrl-names``, ``mclk-enable``, ``mclk-divider``, ``synchronous``, and
   ``fifo-threshold``. (:github:`104423`)
+
+* :dtcompatible:`st,hci-stm32wba` and :dtcompatible:`st,stm32wba-ieee802154` nodes
+  (with nodelabels ``bt_hci_wba`` and ``ieee802154`` respectively) are now
+  children of a top-level :dtcompatible:`st,stm32wba-radio` node with nodelabel
+  ``radio``. The ``interrupts`` property is now set on the ``&radio`` node instead
+  of being duplicated on both ``&bt_hci_wba`` and ``&ieee802154`` nodes. Out-of-tree
+  boards which modified the ``interrupts`` property on either node must be updated
+  to set the property on the top-level ``&radio`` node instead. (:github:`110546`)
 
 Syscon
 ======
@@ -634,6 +669,22 @@ Networking
   keys. Use ``samples/net/wifi/test_certs/rsa2k_no_des`` instead, or set
   :envvar:`WIFI_TEST_CERTS_DIR` to another AES-encrypted certificate directory.
 
+* ``net_if_config_get`` was removed as it was a duplicate of :c:func:`net_if_get_config`.
+  (:github:`110930`)
+
+* The number of ZVFS eventfd's is now determined by a ``ZVFS_EVENTFD_SIZE`` define
+  instead of using the :kconfig:option:`CONFIG_ZVFS_EVENTFD_MAX` Kconfig option directly.
+  Subsystems can specify their own eventfd count requirements by specifying Kconfig
+  options with the prefix ``CONFIG_ZVFS_EVENTFD_ADD_SIZE_``. These are summed together
+  and the result is compared against :kconfig:option:`CONFIG_ZVFS_EVENTFD_MAX`; the larger
+  of the two values is used. To force :kconfig:option:`CONFIG_ZVFS_EVENTFD_MAX` to be used,
+  even when its value is less than the sum of the custom requirements, a new
+  :kconfig:option:`CONFIG_ZVFS_EVENTFD_IGNORE_MIN` option has been introduced (which
+  defaults to being disabled). As a result, networking subsystems that allocate eventfds
+  (e.g. HTTP server, CoAP server, LwM2M, PTP, SSH, the socket service and the WPA
+  supplicant) no longer require the application to manually bump
+  :kconfig:option:`CONFIG_ZVFS_EVENTFD_MAX` to account for them. (:github:`111201`)
+
 
 Ethernet
 ========
@@ -769,6 +820,11 @@ Mbed TLS
 * Interface CMake library ``mbedTLS`` has been renamed to ``mbedtls_iface``. The former is kept
   as an alias to the latter for backward compatibility, but it will be removed in future
   releases.
+
+Snippets
+********
+
+* Rename ``xen_dom0`` to ``xen-dom0``.
 
 Architectures
 *************

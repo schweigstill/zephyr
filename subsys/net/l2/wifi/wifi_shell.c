@@ -161,12 +161,14 @@ static struct net_if *get_iface(enum iface_type type, int argc, char *argv[])
 			return NULL;
 		}
 
-		/* If iface nm wifi type match input type */
-		if ((type == IFACE_TYPE_STA && !wifi_nm_iface_is_sta(iface)) ||
-			(type == IFACE_TYPE_SAP && !wifi_nm_iface_is_sap(iface))) {
-			LOG_ERR("Interface %d type does not match %d", resolved_iface_index, type);
-			return NULL;
-		}
+		/*
+		 * Don't reject the interface based on its current NM role. A
+		 * single VIF moves between STA and SoftAP at runtime, so the
+		 * stored role only reflects what the interface is doing now,
+		 * not what it is allowed to do. Matching against it here breaks
+		 * a STA->SoftAP switch on single-VIF parts. Whether the role
+		 * change is possible is decided by the driver/supplicant.
+		 */
 	}
 #endif
 
@@ -887,6 +889,7 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 		{"iface", sys_getopt_required_argument, 0, 'i'},
 		{"server-cert-domain-exact", sys_getopt_required_argument, 0, 'e'},
 		{"server-cert-domain-suffix", sys_getopt_required_argument, 0, 'x'},
+		{"ssid-protection", sys_getopt_required_argument, 0, 'C'},
 		{"help", sys_getopt_no_argument, 0, 'h'},
 		{0, 0, 0, 0}};
 	char *endptr;
@@ -915,7 +918,7 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 	params->bandwidth = WIFI_FREQ_BANDWIDTH_20MHZ;
 	params->verify_peer_cert = false;
 
-	while ((opt = sys_getopt_long(argc, argv, "s:p:k:e:x:w:b:c:m:t:a:B:K:S:T:A:V:I:P:g:Rh:i:",
+	while ((opt = sys_getopt_long(argc, argv, "s:p:k:e:x:w:b:c:m:t:a:B:K:S:C:T:A:V:I:P:g:Rh:i:",
 				  long_options, &opt_index)) != -1) {
 		state = sys_getopt_state_get();
 		switch (opt) {
@@ -933,12 +936,13 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 			if (params->security) {
 				secure_connection = true;
 			}
-			/* WPA3 security types (SAE) require MFP (802.11w) as required,
+			/* WPA3 security types (SAE and OWE) require MFP (802.11w) as required,
 			 * if not otherwise set.
 			 */
 			if (params->security == WIFI_SECURITY_TYPE_SAE_HNP ||
 			    params->security == WIFI_SECURITY_TYPE_SAE_H2E ||
-			    params->security == WIFI_SECURITY_TYPE_SAE_AUTO) {
+			    params->security == WIFI_SECURITY_TYPE_SAE_AUTO ||
+				params->security == WIFI_SECURITY_TYPE_OWE) {
 				params->mfp = WIFI_MFP_REQUIRED;
 			}
 			break;
@@ -1144,6 +1148,13 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 		case 'R':
 			params->ft_used = true;
 			break;
+		case 'C':
+			params->ssid_protection = atoi(state->optarg);
+			if (params->ssid_protection != 0U && params->ssid_protection != 1U) {
+				PR_WARNING("ssid_protection error %d\n", params->ssid_protection);
+				return -EINVAL;
+			}
+			break;
 		case 'g':
 			params->ignore_broadcast_ssid = shell_strtol(state->optarg, 10, &ret);
 			break;
@@ -1189,6 +1200,11 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 
 	if (params->psk && !secure_connection) {
 		PR_WARNING("Passphrase provided without security configuration\n");
+	}
+	if (params->psk && params->security == WIFI_SECURITY_TYPE_OWE) {
+		PR_WARNING("OWE (Enhanced open) does not use passphrase; ignoring -p\n");
+		params->psk = NULL;
+		params->psk_length = 0;
 	}
 
 	if (!params->ssid) {
@@ -5156,8 +5172,10 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 				 "[-V, --eap-version]: 0 or 1. Default 1: eap version 1\n"
 				 "[-I, --eap-id1...--eap-id8]: Client Identity. Default no eap identity\n"
 				 "[-P, --eap-pwd1...--eap-pwd8]: Client Password\n"
-				 "Default no password for eap user"),
-		      cmd_wifi_ap_enable, 2, 47),
+				 "Default no password for eap user\n"
+				 "[-C, --ssid-protection]: Whether to use SSID protection in\n"
+				 "4-way handshake: 0:Disable, 1:Enable"),
+		      cmd_wifi_ap_enable, 2, 49),
 	SHELL_CMD_ARG(stations, NULL,
 		      SHELL_HELP("List stations connected to the AP",
 				 "[-i, --iface=<interface index>]"),
@@ -5298,9 +5316,11 @@ SHELL_SUBCMD_ADD((wifi), connect, NULL,
 			    "[-e, --server-cert-domain-exact]: Full domain names for "
 			    "server certificate match\n"
 			    "[-x, --server-cert-domain-suffix]: Domain name suffixes for "
-			    "server certificate match"),
+			    "server certificate match\n"
+			    "[-C, --ssid-protection]: Whether to use SSID protection in\n"
+			    "4-way handshake: 0:Disable, 1:Enable"),
 		 cmd_wifi_connect,
-		 2, 46);
+		 2, 48);
 
 SHELL_SUBCMD_ADD((wifi), disconnect, NULL,
 		 SHELL_HELP("Disconnect from the Wi-Fi AP",
