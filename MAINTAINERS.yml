@@ -5462,6 +5462,7 @@ STM32 Platforms (Wireless):
     - asm5878
     - HoZHel
     - mathieuchopstm
+    - vtardy-st
   files:
     - boards/shields/x_nucleo_bnrg2a1/
     - boards/shields/x_nucleo_idb05a1/
@@ -5956,6 +5957,7 @@ Testing:
     - hakehuang
   collaborators:
     - nashif
+    - nordic-piks
   files: []
   description: >-
     This area is for testing activities on hardware and in emulators. It is not
@@ -6824,6 +6826,7 @@ West:
     - djiatsaf-st
     - asm5878
     - HoZHel
+    - vtardy-st
   files:
     - modules/Kconfig.stm32
   labels:
