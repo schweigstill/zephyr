@@ -656,6 +656,13 @@ Bluetooth HCI
   (most don't) there's also a new :c:func:`bt_hci_recv_err` API that leaves the responsibility
   of unrefing the buffer to the caller in case of error situations.
 
+Bluetooth Services
+==================
+
+* :kconfig:option:`CONFIG_BT_OTS_MAX_OBJ_CNT` has been changed from ``hex`` to ``int`` for a
+  more intuitive type.
+  Simply modify any hex values like ``0x30`` to their decimal values like ``48``.
+
 Networking
 **********
 
@@ -711,6 +718,12 @@ Networking
   (e.g. HTTP server, CoAP server, LwM2M, PTP, SSH, the socket service and the WPA
   supplicant) no longer require the application to manually bump
   :kconfig:option:`CONFIG_ZVFS_EVENTFD_MAX` to account for them. (:github:`111201`)
+
+* :kconfig:option:`CONFIG_NET_L2_PTP` has been deprecated and replaced by
+  :kconfig:option:`CONFIG_NET_L2_PTP_TIMESTAMPING`. The new option more accurately describes the
+  feature it enables. Applications or board configurations that explicitly enable
+  :kconfig:option:`CONFIG_NET_L2_PTP` should be updated to use
+  :kconfig:option:`CONFIG_NET_L2_PTP_TIMESTAMPING` instead.
 
 
 Ethernet

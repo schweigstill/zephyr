@@ -942,11 +942,12 @@ int cap_ac_unicast(const struct shell *sh, const struct cap_unicast_ac_param *pa
 	/* Set all endpoints from multiple connections in a single array, and verify that the known
 	 * endpoints matches the audio configuration
 	 */
+	total_cnt = 0U;
 	for (size_t i = 0U; i < param->conn_cnt; i++) {
 		for (size_t j = 0U; j < param->snk_cnt[i]; j++) {
 			struct shell_stream *snk_uni_stream;
 
-			snk_uni_stream = snk_uni_streams[snk_cnt] = &unicast_streams[snk_cnt];
+			snk_uni_stream = snk_uni_streams[snk_cnt] = &unicast_streams[total_cnt];
 
 			err = set_codec_config(sh, snk_uni_stream, &default_sink_preset,
 					       param->conn_cnt, param->snk_cnt[i],
@@ -958,13 +959,13 @@ int cap_ac_unicast(const struct shell *sh, const struct cap_unicast_ac_param *pa
 			}
 
 			snk_cnt++;
+			total_cnt++;
 		}
 
 		for (size_t j = 0U; j < param->src_cnt[i]; j++) {
 			struct shell_stream *src_uni_stream;
 
-			src_uni_stream = src_uni_streams[src_cnt] =
-				&unicast_streams[snk_cnt + src_cnt];
+			src_uni_stream = src_uni_streams[src_cnt] = &unicast_streams[total_cnt];
 
 			err = set_codec_config(sh, src_uni_stream, &default_source_preset,
 					       param->conn_cnt, param->src_cnt[i],
@@ -976,6 +977,7 @@ int cap_ac_unicast(const struct shell *sh, const struct cap_unicast_ac_param *pa
 			}
 
 			src_cnt++;
+			total_cnt++;
 		}
 	}
 
@@ -1337,6 +1339,12 @@ static int cmd_broadcast_start(const struct shell *sh, size_t argc, char *argv[]
 		return -ENOEXEC;
 	}
 
+	if (default_source.handover_in_progress) {
+		shell_info(sh, "CAP Handover in progress");
+
+		return -ENOEXEC;
+	}
+
 	if (default_source.cap_source == NULL || !default_source.is_cap) {
 		shell_info(sh, "CAP Broadcast source not created");
 
@@ -1361,6 +1369,12 @@ static int cmd_broadcast_update(const struct shell *sh, size_t argc, char *argv[
 	int err;
 
 	ARG_UNUSED(argc);
+
+	if (default_source.handover_in_progress) {
+		shell_info(sh, "CAP Handover in progress");
+
+		return -ENOEXEC;
+	}
 
 	if (default_source.cap_source == NULL || !default_source.is_cap) {
 		shell_info(sh, "CAP Broadcast source not created");
@@ -1396,6 +1410,12 @@ static int cmd_broadcast_stop(const struct shell *sh, size_t argc, char *argv[])
 
 	ARG_UNUSED(argc);
 	ARG_UNUSED(argv);
+
+	if (default_source.handover_in_progress) {
+		shell_info(sh, "CAP Handover in progress");
+
+		return -ENOEXEC;
+	}
 
 	if (default_source.cap_source == NULL || !default_source.is_cap) {
 		shell_info(sh, "CAP Broadcast source not created");
