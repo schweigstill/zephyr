@@ -1705,9 +1705,13 @@ out:
  */
 static void rejoin_ipv6_mcast_groups(struct net_if *iface)
 {
+	struct net_in6_addr solicit_addrs[NET_IF_MAX_IPV6_ADDR];
 	struct net_if_mcast_addr *ifaddr, *next;
 	struct net_if_ipv6 *ipv6;
 	sys_slist_t rejoin_needed;
+	int solicit_count = 0;
+
+	sys_slist_init(&rejoin_needed);
 
 	net_if_lock(iface);
 
@@ -1719,14 +1723,21 @@ static void rejoin_ipv6_mcast_groups(struct net_if *iface)
 		goto out;
 	}
 
-	/* Rejoin solicited node multicasts if the interface has ND enabled. */
+	/* Collect the addresses whose solicited node multicast groups need to
+	 * be (re)joined if the interface has ND enabled. The join itself is
+	 * done below without the iface lock held: join_mcast_nodes() transmits
+	 * MLD reports, whose TX path locks other interfaces, so doing it under
+	 * net_if_lock() could deadlock (ABBA) when two interfaces are brought
+	 * up concurrently.
+	 */
 	if (!net_if_flag_is_set(iface, NET_IF_IPV6_NO_ND)) {
 		ARRAY_FOR_EACH(ipv6->unicast, i) {
 			if (!ipv6->unicast[i].is_used) {
 				continue;
 			}
 
-			join_mcast_nodes(iface, &ipv6->unicast[i].address.in6_addr);
+			solicit_addrs[solicit_count++] =
+				ipv6->unicast[i].address.in6_addr;
 		}
 	}
 
@@ -1734,8 +1745,6 @@ static void rejoin_ipv6_mcast_groups(struct net_if *iface)
 	if (net_if_flag_is_set(iface, NET_IF_IPV6_NO_MLD)) {
 		goto out;
 	}
-
-	sys_slist_init(&rejoin_needed);
 
 	/* Rejoin any mcast address present on the interface, but marked as not joined. */
 	ARRAY_FOR_EACH(ipv6->mcast, i) {
@@ -1747,10 +1756,18 @@ static void rejoin_ipv6_mcast_groups(struct net_if *iface)
 		sys_slist_prepend(&rejoin_needed, &ipv6->mcast[i].rejoin_node);
 	}
 
+out:
 	net_if_unlock(iface);
 
-	/* Start DAD for all the addresses without holding the iface lock
-	 * to avoid any possible mutex deadlock issues.
+	/* Join the solicited node multicast groups without holding the iface
+	 * lock, see the comment above.
+	 */
+	for (int i = 0; i < solicit_count; i++) {
+		join_mcast_nodes(iface, &solicit_addrs[i]);
+	}
+
+	/* Rejoin multicast groups without holding the iface lock to avoid any
+	 * possible mutex deadlock issues.
 	 */
 	SYS_SLIST_FOR_EACH_CONTAINER_SAFE(&rejoin_needed,
 					  ifaddr, next, rejoin_node) {
@@ -1767,11 +1784,6 @@ static void rejoin_ipv6_mcast_groups(struct net_if *iface)
 				net_if_get_by_iface(iface));
 		}
 	}
-
-	return;
-
-out:
-	net_if_unlock(iface);
 }
 
 /* To be called when interface comes operational down so that multicast
@@ -3633,14 +3645,21 @@ static void iface_ipv6_start(struct net_if *iface)
 
 static void iface_ipv6_stop(struct net_if *iface)
 {
-	struct net_if_ipv6 *ipv6 = iface->config.ip.ipv6;
+	struct net_if_ipv6 *ipv6;
 
 	if (!net_if_flag_is_set(iface, NET_IF_IPV6) ||
 	    net_if_flag_is_set(iface, NET_IF_IPV6_NO_ND)) {
 		return;
 	}
 
+	/* notify_iface_down() runs without net_if_lock() held, so take it here
+	 * to access the IPv6 address structures safely.
+	 */
+	net_if_lock(iface);
+
+	ipv6 = iface->config.ip.ipv6;
 	if (ipv6 == NULL) {
+		net_if_unlock(iface);
 		return;
 	}
 
@@ -3658,6 +3677,8 @@ static void iface_ipv6_stop(struct net_if *iface)
 						  &ipv6->unicast[i].address.in6_addr);
 		}
 	}
+
+	net_if_unlock(iface);
 }
 
 static void iface_ipv6_init(int if_count)
@@ -5963,6 +5984,14 @@ static void notify_iface_up(struct net_if *iface)
 
 	net_if_flag_set(iface, NET_IF_RUNNING);
 	net_mgmt_event_notify(NET_EVENT_IF_UP, iface);
+
+	/* net_virtual_enable() and the IPv6/IPv4 startup below transmit packets
+	 * (RS, MLD join) and lock other interfaces, so drop net_if_lock() around
+	 * them - otherwise two interfaces coming up concurrently could deadlock
+	 * (ABBA). The caller holds the lock exactly once.
+	 */
+	net_if_unlock(iface);
+
 	net_virtual_enable(iface);
 
 	/* If the interface is only having point-to-point traffic then we do
@@ -5978,12 +6007,20 @@ static void notify_iface_up(struct net_if *iface)
 		iface_ipv4_start(iface);
 		net_ipv4_autoconf_start(iface);
 	}
+
+	net_if_lock(iface);
 }
 
 static void notify_iface_down(struct net_if *iface)
 {
 	net_if_flag_clear(iface, NET_IF_RUNNING);
 	net_mgmt_event_notify(NET_EVENT_IF_DOWN, iface);
+
+	/* As in notify_iface_up(), drop net_if_lock() around the parts that
+	 * transmit packets and lock other interfaces.
+	 */
+	net_if_unlock(iface);
+
 	net_virtual_disable(iface);
 
 	if (!net_if_is_offloaded(iface) &&
@@ -5995,10 +6032,10 @@ static void notify_iface_down(struct net_if *iface)
 	}
 
 	if (IS_ENABLED(CONFIG_NET_NATIVE_TCP)) {
-		net_if_unlock(iface);
 		net_tcp_close_all_for_iface(iface);
-		net_if_lock(iface);
 	}
+
+	net_if_lock(iface);
 }
 
 const char *net_if_oper_state2str(enum net_if_oper_state state)
