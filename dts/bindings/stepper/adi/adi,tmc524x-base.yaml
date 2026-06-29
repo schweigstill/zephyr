@@ -9,7 +9,6 @@ include:
   - name: adi,trinamic-gconf.yaml
     property-allowlist:
       - en-pwm-mode
-#      - test-mode
 
 properties:
   shaft:
@@ -30,11 +29,30 @@ properties:
   fast-standstill:
     type: boolean
     description: |
-      1: x
+      Reduce timeout for step execution until standstill detection from 2^20
+      to 2^18 clock cycles
 
   length-step-pulse:
     type: int
     description: |
-      1: x
+      Only used in driver mode with STEP/DIR outputs.
+      0: Each toggle of the STEP output corresponds to a step.
+      >0: Each positive pulse on the STEP output corresponds to a step. 
 
+  sleep-gpios:
+    type: phandle-array
+    description: |
+      Reset/Sleep input SLEEPN pin. This pin has to be set to high in order
+      to enable the TMC device. A short low pulse performs a hardware reset.
+      Used in conjunction with hw-reset.
+      Should be configured as push-pull output (active low).
+
+  hw-reset:
+    type: boolean
+    description: |
+      Perform a complete reset cycle on sleep-gpio. The pin is set to low and
+      after a short waiting time set to high. If hw-reset is not set, this
+      explicit low->wait->high cycle is omitted and sleep-gpio is set high
+      immediately. See chapter "External Reset and Sleep Mode" in the TMC524x
+      datasheet.
 

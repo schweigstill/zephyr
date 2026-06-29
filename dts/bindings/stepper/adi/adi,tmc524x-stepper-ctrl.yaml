@@ -28,3 +28,8 @@ include:
       - ihold
       - irun
       - iholddelay
+      - irundelay
+      - globalscaler
+      - slope-control
+      - current-range
+

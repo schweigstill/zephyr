@@ -128,6 +128,57 @@ properties:
     min: 0
     max: 0x0F
 
+  irundelay:
+    type: int
+    default: 0
+    description: |
+      Controls the number of clock cycles for motor power up after start is detected.
+      0: instant power up
+      1..15: Delay per current increment step in multiple of 512 clocks
+    min: 0
+    max: 0x0F
+
+  globalscaler:
+    type: int
+    default: 0
+    description: |
+      Global scaling of motor current. This value is multiplied to the current scaling
+      to adapt a drive to a certain motor type. This value should be chosen before
+      tuning other settings, because it also influences chopper hysteresis. This
+      value is just to finetune the motor current.
+      0: Full scale (or write 256)
+      1..31: Not allowed for operation
+      32..255: 32/256..255/256 of maximum current.
+      Hint: Values >128 recommended for best results
+    min: 0
+    max: 0xFF
+    
+  slope-control:
+    type: int
+    default: 0
+    description: |
+      Slope control setting
+      0: 100 V/us
+      1: 200 V/us
+      2: 400 V/us
+      3: 800 V/us
+    min: 0
+    max: 0x03
+
+  current-range:
+    type: int
+    default: 0
+    description: |
+      This setting allows a basic adaptation of the drivers RDSon current sensing to the motor
+      current range. Select the lowest fitting range for best current precision. The value is
+      the peak current setting.
+      0: 1 A
+      1: 2 A
+      2: 3 A
+      3: 3 A
+    min: 0
+    max: 0x03
+
   vcoolthrs:
     type: int
     default: 0
