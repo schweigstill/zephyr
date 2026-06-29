@@ -35,6 +35,8 @@ struct tmc524x_config {
 	uint8_t comm_type;
 	const uint32_t gconf;
 	const uint32_t clock_frequency;
+	struct gpio_dt_spec sleep_gpio;
+	uint8_t hw_reset;
 #if TMC524X_BUS_UART
 	const struct gpio_dt_spec sw_sel_gpio;
 	uint8_t uart_addr;
@@ -546,6 +548,8 @@ static int tmc524x_init(const struct device *dev)
 				    ? BIT(TMC524X_GCONF_DIAG0_INT_PUSHPULL_SHIFT)                  \
 				    : 0)),                                                         \
 		 .clock_frequency = DT_INST_PROP(inst, clock_frequency),                           \
+		 .sleep_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, sleep_gpios, {0}),                   \
+		 .hw_reset = DT_INST_PROP(inst, hw_reset),                                         \
 		 .motion_controller = DEVICE_DT_GET_OR_NULL(DT_CHILD_BY_COMPATIBLE(                \
 			 DT_DRV_INST(inst), adi_tmc524x_stepper_ctrl)),                           \
 		 .stepper_driver = DEVICE_DT_GET_OR_NULL(                                          \
