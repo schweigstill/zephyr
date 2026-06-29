@@ -411,6 +411,11 @@ RTC
   ``32k-gpios`` usage to ``freq-32khz-gpios``, and replace ``maxim_ds3231_*`` helper API usage with
   generic RTC subsystem APIs.
 
+* :dtcompatible:`microcrystal,rv3032` properties ``trickle-resistor-ohms`` and
+  ``trickle-charger-mode`` have moved to the parent
+  :dtcompatible:`microcrystal,rv3032-mfd` device. The parent MFD device now
+  handles configuring the backup supply mode for all child devices.
+
 SD Host Controller
 ==================
 
@@ -869,6 +874,15 @@ Random
   Use :kconfig:option:`CONFIG_PSA_CSPRNG_GENERATOR` instead.
 
 * ``CONFIG_CS_CTR_DRBG_PERSONALIZATION`` has been removed. It did not have any effect.
+
+Tools
+*****
+
+* The ``openocd`` runner now selects a debug adapter by serial number through the
+  canonical ``-i``/``--dev-id`` option, like the other runners. The previous
+  ``--serial`` option is deprecated and kept as an alias; it maps onto the same
+  mechanism (the value is still passed to the OpenOCD config as
+  ``_ZEPHYR_BOARD_SERIAL``). Update any scripts to use ``west flash -i <serial>``.
 
 Modules
 *******
