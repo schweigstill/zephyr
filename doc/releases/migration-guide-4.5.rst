@@ -522,6 +522,9 @@ STM32
   to declare and configure XSPI Manager. Boards making use of XSPI must now enable
   ``&xspim`` node in addition to the desired XSPI controller to use XSPI. (:github:`109903`)
 
+* STM32MP13 SoC DTSI ethernet: rename labels from ``mac:`` and ``mdio:`` to ``mac0:`` and
+  ``mdio0:``. The goal is to distinguish the 2 Ethernet controllers available. (:github:`108574`)
+
 Syscon
 ======
 
@@ -950,3 +953,6 @@ Architectures
 
 * ``CONFIG_XTENSA_MPU_DEFAULT_MEM_TYPE`` is removed since memory types are now defined via
   ``xtensa_mpu_mem_type_ranges[]``.
+
+* ``CONFIG_XTENSA_BACKTRACE_EXCEPTION_DUMP_HOOK`` is removed, since backtrace is now always
+  using :c:macro:`EXCEPTION_DUMP` for output.
