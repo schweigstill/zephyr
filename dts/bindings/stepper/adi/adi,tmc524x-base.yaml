@@ -9,6 +9,8 @@ include:
   - name: adi,trinamic-gconf.yaml
     property-allowlist:
       - en-pwm-mode
+      - fast-standstill
+      - length-step-pulse
 
 properties:
   shaft:
@@ -25,19 +27,6 @@ properties:
 
       Hint: µstep velocity v[Hz] µsteps / s v[Hz] = v[52xx] * ( fCLK[Hz]/2 / 2^23 )
             where v[52xx] is the value written to the TMC524X.
-
-  fast-standstill:
-    type: boolean
-    description: |
-      Reduce timeout for step execution until standstill detection from 2^20
-      to 2^18 clock cycles
-
-  length-step-pulse:
-    type: int
-    description: |
-      Only used in driver mode with STEP/DIR outputs.
-      0: Each toggle of the STEP output corresponds to a step.
-      >0: Each positive pulse on the STEP output corresponds to a step. 
 
   sleep-gpios:
     type: phandle-array
