@@ -82,3 +82,16 @@ properties:
          off to on state while in stand-still and at IHOLD=
          nominal IRUN current, only.
 
+  fast-standstill:
+    type: boolean
+    description: |
+      Reduce timeout for step execution until standstill detection from 2^20
+      to 2^18 clock cycles
+
+  length-step-pulse:
+    type: int
+    description: |
+      Only used in driver mode with STEP/DIR outputs.
+      0: Each toggle of the STEP output corresponds to a step.
+      >0: Each positive pulse on the STEP output corresponds to a step. 
+
