@@ -173,12 +173,20 @@ New APIs and options
 
     * :c:func:`bt_conn_take`
     * :c:func:`bt_conn_drop`
+    * :c:func:`bt_le_per_adv_update_did`
 
   * Mesh
 
     * :c:struct:`bt_mesh_lpn_timing`
     * :c:func:`bt_mesh_stat_lpn_timing_get`
     * :c:func:`bt_mesh_stat_lpn_timing_reset`
+
+* Crypto
+
+  * :c:enumerator:`CRYPTO_CIPHER_MODE_CFB`
+  * :c:enumerator:`CRYPTO_CIPHER_MODE_OFB`
+  * :c:func:`cipher_cfb_op`
+  * :c:func:`cipher_ofb_op`
 
 * Devicetree
 
@@ -281,6 +289,10 @@ New Samples
 
 Libraries / Subsystems
 **********************
+
+* Crypto
+
+  * Added AES CFB and OFB cipher mode support.
 
 * DFU
 
