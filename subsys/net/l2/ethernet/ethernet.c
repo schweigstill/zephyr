@@ -287,17 +287,10 @@ static enum net_verdict ethernet_recv(struct net_if *iface,
 				  sizeof(struct net_eth_addr), NET_LINK_ETHERNET);
 
 	if (IS_ENABLED(CONFIG_NET_ETHERNET_BRIDGE) && net_eth_iface_is_bridged(ctx)) {
-		verdict = eth_bridge_input_process(iface, pkt);
+		verdict = eth_bridge_input_process(iface, pkt, &iface);
 		if (verdict == NET_DROP) {
 			goto drop;
 		}
-
-		/* Handled by bridge locally */
-		if (verdict == NET_OK) {
-			iface = net_eth_get_bridge(ctx);
-		}
-
-		/* For NET_CONTINUE case, current iface continues to handle the pkt. */
 	}
 
 	type = net_ntohs(hdr->type);
@@ -831,7 +824,6 @@ static inline int ethernet_enable(struct net_if *iface, bool state)
 {
 	const struct device *dev = net_if_get_device(iface);
 	const struct ethernet_api *eth = dev->api;
-	struct net_linkaddr *mac_addr;
 
 	NET_ASSERT(eth != NULL);
 
@@ -841,20 +833,10 @@ static inline int ethernet_enable(struct net_if *iface, bool state)
 		if (eth->stop) {
 			return eth->stop(dev, iface);
 		}
-
-		return 0;
-	}
-
-	mac_addr = net_if_get_link_addr(iface);
-
-	if ((mac_addr->len != NET_ETH_ADDR_LEN) ||
-	    !net_eth_is_addr_valid((struct net_eth_addr *)mac_addr->addr)) {
-		NET_ERR("Invalid MAC address for iface %d (%p)", net_if_get_by_iface(iface), iface);
-		return -EINVAL;
-	}
-
-	if (eth->start) {
-		return eth->start(dev, iface);
+	} else {
+		if (eth->start) {
+			return eth->start(dev, iface);
+		}
 	}
 
 	return 0;
