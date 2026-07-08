@@ -20,7 +20,7 @@
 		zephyr,console = &main_uart0;
 		zephyr,shell-uart = &main_uart0;
 		zephyr,ipc = &ipc0;
-		zephyr,ipc-shm = &ipc_shm0;
+		zephyr,ipc_shm = &ipc_shm0;
 	};
 
 	aliases {
@@ -243,4 +243,10 @@
 		compatible = "zephyr,sdmmc-disk";
 		disk-name = "sd";
 	};
+};
+
+&main_epwm0 {
+	pinctrl-0 = <&main_epwm0_a &main_epwm0_b>;
+	pinctrl-names = "default";
+	status = "okay";
 };

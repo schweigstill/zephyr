@@ -604,6 +604,10 @@ USB
   :c:struct:`usbd_vreq_node` are now called with NULL ``buf`` before data stage is received.
   This allows the stack to return STALL during data stage. Out-of-tree class and vendor handlers
   need to be updated. (:github:`108840`)
+* The Espressif USB-OTG full-speed controller compatible ``espressif,esp32-usb-otg`` has been
+  renamed to :dtcompatible:`espressif,esp32-usb-otg-fs`. The internal PHY D+/D- pad numbers are
+  now provided through the ``phy-dp-pin`` and ``phy-dm-pin`` properties. Out-of-tree devicetrees
+  using the old compatible must update the node compatible and add the two pin properties.
 
 Video
 =====
@@ -883,6 +887,15 @@ Networking
   from AP selection; SNR is now always factored in, improving connection stability
   for embedded Wi-Fi use cases. Users who need the previous behaviour can restore it by enabling
   :kconfig:option:`CONFIG_WIFI_NM_WPA_SUPPLICANT_NW_SEL_THROUGHPUT`.
+
+* LLMNR support has been deprecated. The Kconfig options
+  :kconfig:option:`CONFIG_LLMNR_RESOLVER` and
+  :kconfig:option:`CONFIG_LLMNR_RESPONDER` will be removed in a future release
+  (4.7 at the earliest). LLMNR (RFC 4795) is being retired by Microsoft and is
+  disabled by default on modern Windows. Applications that rely on local name
+  resolution should migrate to mDNS (:kconfig:option:`CONFIG_MDNS_RESOLVER` /
+  :kconfig:option:`CONFIG_MDNS_RESPONDER`).
+
 
 Ethernet
 ========
