@@ -680,6 +680,7 @@ Bluetooth HCI:
     - "area: Bluetooth"
   tests:
     - bluetooth
+    - sample.bluetooth
 
 Bluetooth Host:
   status: maintained
@@ -1302,10 +1303,9 @@ Device Driver Model:
     - init
 
 Devicetree:
-  status: maintained
-  maintainers:
-    - mbolivar
+  status: odd fixes
   collaborators:
+    - mbolivar
     - rruuaanng
   files-regex:
     - ^dts/bindings/.*zephyr.*
