@@ -1289,6 +1289,7 @@ Device Driver Model:
   collaborators:
     - dcpleung
     - nashif
+    - edersondisouza
   files:
     - include/zephyr/device.h
     - kernel/device.c
@@ -1307,6 +1308,7 @@ Devicetree:
   collaborators:
     - mbolivar
     - rruuaanng
+    - kylebonnici
   files-regex:
     - ^dts/bindings/.*zephyr.*
     - ^dts/bindings/[^,]+$
@@ -1635,6 +1637,7 @@ Documentation Infrastructure:
     - "area: Clock Monitor"
   tests:
     - drivers.clock_monitor
+    - sample.drivers.clock_monitor
 
 "Drivers: Clock control":
   status: maintained
@@ -1801,6 +1804,8 @@ Documentation Infrastructure:
     - samples/drivers/dali/
   labels:
     - "area: DALI"
+  tests:
+    - sample.drivers.dali
 
 "Drivers: DMA":
   status: maintained
@@ -2363,7 +2368,7 @@ Documentation Infrastructure:
     - tests/drivers/mspi/
     - doc/hardware/peripherals/mspi.rst
     - dts/bindings/mspi/
-    - dts/bindings/mtd/mspi*
+    - dts/bindings/mtd/*mspi*
   labels:
     - "area: MSPI"
   tests:
@@ -2965,6 +2970,7 @@ Documentation Infrastructure:
     - "area: Wi-Fi"
   tests:
     - drivers.net.wifi
+    - drivers.wifi
 
 "Drivers: Wi-Fi as nRF Wi-Fi":
   status: maintained
@@ -3130,6 +3136,7 @@ Espressif Platforms:
     - esp.wifi.sec
     - sample.boards.esp32
     - sample.esp32.deep_sleep
+    - boards.espressif
 
 Ezurio platforms:
   status: maintained
@@ -3610,6 +3617,7 @@ Key-Value Storage Systems:
     - lyakh
     - pillo79
     - laurenmurphyx64
+    - edersondisouza
   files:
     - cmake/llext-edk.cmake
     - samples/subsys/llext/
@@ -3640,8 +3648,8 @@ Linker Scripts:
     - "area: Linker Scripts"
   tests:
     - linker
-    - buildsystem.app_dev.code_relocation
     - sample.app_dev.code_relocation_nocopy
+    - buildsystem.app_dev
 
 Linters and Static Analyzers:
   status: maintained
@@ -3651,6 +3659,7 @@ Linters and Static Analyzers:
     - nashif
     - kartben
     - pdgendt
+    - kylebonnici
   files:
     - .codechecker.yml
     - .codecov.yml
@@ -3787,6 +3796,16 @@ Logging:
     - libraries.mpsc_pbuf
     - libraries.spsc_pbuf
     - sample.logging
+
+M5Stack Platforms:
+  status: maintained
+  maintainers:
+    - thc1006
+  files:
+    - boards/m5stack/
+    - boards/shields/m5stack_*/
+  labels:
+    - "platform: M5Stack"
 
 MAINTAINERS file:
   status: maintained
@@ -4677,6 +4696,7 @@ Networking:
     - "area: MCP"
   tests:
     - net.mcp
+    - sample.net.mcp
 
 "Networking: MQTT":
   status: maintained
@@ -4804,6 +4824,7 @@ Networking:
   tests:
     - net.wifi
     - sample.net.wifi
+    - wifi.build.nan
 
 "Networking: gPTP":
   status: maintained
@@ -4981,10 +5002,10 @@ PMCI:
   status: maintained
   maintainers:
     - teburd
+    - edersondisouza
   collaborators:
     - nashif
     - kehintel
-    - edersondisouza
   files:
     - subsys/pmci/
     - samples/subsys/pmci/
@@ -5014,6 +5035,7 @@ POSIX API layer:
     - portability.posix
     - sample.posix
     - portability.xsi
+    - posix.threads_base
 
 Panasonic Platforms:
   status: maintained
@@ -5087,10 +5109,10 @@ RISCV arch:
   status: maintained
   maintainers:
     - fkokosinski
+  collaborators:
     - kgugala
     - tgorochowik
-  collaborators:
-    - edersondisouza
+    - dcpleung
     - katsuster
     - mgielda
     - npitre
@@ -5752,10 +5774,16 @@ Silabs Platforms:
     - drivers/*/*/*siwx91x*
     - tests/boards/silabs/
     - snippets/*silabs*/
+  file-groups:
+    - name: Silabs IEEE 802.15.4
+      collaborators:
+        - db00lean
+      files:
+        - drivers/ieee802154/
   labels:
     - "platform: Silabs"
   tests:
-    - boards.silabs.dma.block_append.dma_m2m_ba
+    - boards.silabs
 
 Silabs SiM3U Platforms:
   status: maintained
@@ -6177,6 +6205,11 @@ Twister:
     - scripts/pylib/*-twister-harness/
   labels:
     - "area: Twister"
+  tests:
+    - kernel.common
+    - sample.pytest
+    - sample.harness
+    - sample.twister
 
 USB:
   status: maintained
@@ -6988,10 +7021,10 @@ West:
   status: maintained
   maintainers:
     - teburd
+    - edersondisouza
   collaborators:
     - nashif
     - dkalowsk
-    - edersondisouza
   files: []
   labels:
     - "area: MCTP"
@@ -7079,6 +7112,7 @@ West:
     - secure_storage.psa
     - crypto.mbedtls_psa
     - crypto.secp256r1
+    - crypto.psa
 
 "West project: mcuboot":
   status: maintained
