@@ -802,6 +802,12 @@ Bluetooth Audio
     :zephyr:code-sample:`ble_peripheral_tmap_peripheral` have been moved from
     ``samples/bluetooth/`` to ``samples/bluetooth/audio``.
 
+* VOCS
+
+  * The VOCS client now requires automatic CCC (Client Characteristic Configuration) discovery.
+    :kconfig:option:`BT_VOCS_CLIENT` now depends on :kconfig:option:`BT_GATT_AUTO_DISCOVER_CCC`.
+    Applications using VOCS client must ensure that CCC auto-discovery support is enabled. (:github:`110607`)
+
 .. zephyr-keep-sorted-stop
 
 Bluetooth Classic
@@ -1101,6 +1107,13 @@ Mbed TLS
 * Interface CMake library ``mbedTLS`` has been renamed to ``mbedtls_iface``. The former is kept
   as an alias to the latter for backward compatibility, but it will be removed in future
   releases.
+
+Trusted Firmware-M
+==================
+
+* :kconfig:option:`TFM_ZEPHYR_4_0_TO_4_2_COMPATIBILITY` has been deprecated in favor of
+  :kconfig:option:`TFM_ZEPHYR_4_2_COMPATIBILITY`, which more accurately describes when the symbol
+  needs to be set.
 
 Snippets
 ********
