@@ -2687,6 +2687,22 @@ struct net_if_router *net_if_ipv4_router_add(struct net_if *iface,
 bool net_if_ipv4_router_rm(struct net_if_router *router);
 
 /**
+ * @brief Add an IPv4 route to the system routing table.
+ *
+ * @param iface Network interface this route is tied to.
+ * @param addr Destination IPv4 address of the route.
+ * @param mask_len Destination netmask length.
+ * @param nexthop IPv4 address of the next hop, or NULL for an on-link
+ *                (directly connected) route.
+ * @param lifetime Route lifetime in seconds (UINT32_MAX for a route that
+ *                 never expires).
+ *
+ * @return 0 on success, negative errno otherwise.
+ */
+int net_if_ipv4_route_add(struct net_if *iface, const struct net_in_addr *addr, uint8_t mask_len,
+			  const struct net_in_addr *nexthop, uint32_t lifetime);
+
+/**
  * @brief Check if the given IPv4 address belongs to local subnet.
  *
  * @param iface Interface to use. Must be a valid pointer to an interface.
@@ -3586,7 +3602,7 @@ extern int net_stats_prometheus_scrape(struct prometheus_collector *collector,
  * @brief Forward declaration of a network interface
  *
  * @param inst instance number.  This is replaced by
- * <tt>DT_DRV_COMPAT(inst)</tt> in the call to NET_DEVICE_DT_ADD_IFACE.
+ * <tt>DT_DRV_INST(inst)</tt> in the call to NET_DEVICE_DT_ADD_IFACE.
  * @param ... other parameters as expected by NET_DEVICE_DT_ADD_IFACE.
  */
 #define NET_IF_DT_INST_DECLARE(inst, ...) NET_IF_DT_DECLARE(DT_DRV_INST(inst), __VA_ARGS__)
@@ -3605,7 +3621,7 @@ extern int net_stats_prometheus_scrape(struct prometheus_collector *collector,
  * NET_DEVICE_DT_ADD_IFACE.
  *
  * @param inst instance number.  This is replaced by
- * <tt>DT_DRV_COMPAT(inst)</tt> in the call to NET_IF_DT_GET.
+ * <tt>DT_DRV_INST(inst)</tt> in the call to NET_IF_DT_GET.
  * @param ... other parameters as expected by NET_DEVICE_DT_ADD_IFACE.
  */
 #define NET_IF_DT_INST_GET(inst, ...) NET_IF_DT_GET(DT_DRV_INST(inst), __VA_ARGS__)
@@ -3652,7 +3668,7 @@ extern int net_stats_prometheus_scrape(struct prometheus_collector *collector,
  * @brief Like NET_DEVICE_DT_ADD_IFACE for an instance of a DT_DRV_COMPAT compatible
  *
  * @param inst instance number.  This is replaced by
- * <tt>DT_DRV_COMPAT(inst)</tt> in the call to NET_DEVICE_DT_ADD_IFACE.
+ * <tt>DT_DRV_INST(inst)</tt> in the call to NET_DEVICE_DT_ADD_IFACE.
  *
  * @param ... other parameters as expected by NET_DEVICE_DT_ADD_IFACE.
  */
@@ -3687,7 +3703,7 @@ extern int net_stats_prometheus_scrape(struct prometheus_collector *collector,
  * @brief Like NET_DEVICE_DT_DEFINE for an instance of a DT_DRV_COMPAT compatible
  *
  * @param inst instance number.  This is replaced by
- * <tt>DT_DRV_COMPAT(inst)</tt> in the call to NET_DEVICE_DT_DEFINE.
+ * <tt>DT_DRV_INST(inst)</tt> in the call to NET_DEVICE_DT_DEFINE.
  *
  * @param ... other parameters as expected by NET_DEVICE_DT_DEFINE.
  */
@@ -3760,7 +3776,7 @@ extern int net_stats_prometheus_scrape(struct prometheus_collector *collector,
  * compatible
  *
  * @param inst instance number.  This is replaced by
- * <tt>DT_DRV_COMPAT(inst)</tt> in the call to NET_DEVICE_DT_DEFINE_INSTANCE.
+ * <tt>DT_DRV_INST(inst)</tt> in the call to NET_DEVICE_DT_DEFINE_INSTANCE.
  *
  * @param ... other parameters as expected by NET_DEVICE_DT_DEFINE_INSTANCE.
  */
@@ -3830,7 +3846,7 @@ extern int net_stats_prometheus_scrape(struct prometheus_collector *collector,
  * compatible
  *
  * @param inst instance number.  This is replaced by
- * <tt>DT_DRV_COMPAT(inst)</tt> in the call to NET_DEVICE_DT_OFFLOAD_DEFINE.
+ * <tt>DT_DRV_INST(inst)</tt> in the call to NET_DEVICE_DT_OFFLOAD_DEFINE.
  *
  * @param ... other parameters as expected by NET_DEVICE_DT_OFFLOAD_DEFINE.
  */
