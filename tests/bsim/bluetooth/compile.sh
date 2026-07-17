@@ -13,13 +13,7 @@ source ${ZEPHYR_BASE}/tests/bsim/sh_common.source
 # Note: We do not parallelize the call into the build of the host, ll and mesh images as those
 # are already building many images in parallel in themselves, and otherwise we would be
 # launching too many parallel builds which can lead to a too high system load.
-${ZEPHYR_BASE}/tests/bsim/bluetooth/audio_samples/compile.sh
 ${ZEPHYR_BASE}/tests/bsim/bluetooth/ll/compile.sh
 ${ZEPHYR_BASE}/tests/bsim/bluetooth/mesh/compile.sh
-${ZEPHYR_BASE}/tests/bsim/bluetooth/samples/compile.sh
-if [ ${BOARD} == "nrf52_bsim/native" ]; then
-	${ZEPHYR_BASE}/tests/bsim/bluetooth/hci_uart/compile.sh
-fi
-${ZEPHYR_BASE}/tests/bsim/bluetooth/tester/compile.sh
 
 wait_for_background_jobs
