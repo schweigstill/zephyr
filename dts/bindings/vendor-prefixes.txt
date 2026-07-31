@@ -260,6 +260,7 @@ fcs	Fairchild Semiconductor
 feixin	Shenzhen Feixin Photoelectic Co., Ltd
 feiyang	Shenzhen Fly Young Technology Co.,LTD.
 festo	Festo SE & Co. KG
+fibocom	Fibocom Wireless Inc.
 fii	Foxconn Industrial Internet
 fintek	Feature Integration Technology Inc.
 firefly	Firefly
@@ -368,6 +369,7 @@ jdi	Japan Display Inc.
 jedec	JEDEC Solid State Technology Association
 jesurun	Shenzhen Jesurun Electronics Business Dept.
 jhd	Shenzhen Jinghua Displays Electronics Co., Ltd.
+jhoinrch	Jhoinrch
 jianda	Jiandangjing Technology Co., Ltd.
 jlc	Shenzhen JLC Technology Group Co., Ltd.
 kaga-fei	KAGA FEI Co., Ltd.
