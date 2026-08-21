@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  TMC524X motion-controller child node. This child implements
+  zephyr/drivers/stepper/stepper_ctrl.h using the integrated eight-point ramp generator.
+  The implementation currently supports the TMC5240 only.
+
+compatible: "adi,tmc524x-stepper-ctrl"
+
+include: base.yaml
+
+properties:
+  vstart:
+    type: int
+    default: 1
+    min: 0
+    max: 262143
+    description: VSTART register, 0..0x3ffff.
+  a1:
+    type: int
+    default: 0
+    min: 0
+    max: 262143
+    description: A1 register, 0..0x3ffff.
+  v1:
+    type: int
+    default: 0
+    min: 0
+    max: 1048575
+    description: V1 register, 0 disables A1/D1 segment, 0..0xfffff.
+  amax:
+    type: int
+    default: 1000
+    min: 1
+    max: 262143
+    description: AMAX register, 1..0x3ffff; nonzero is required for velocity-mode stop.
+  vmax:
+    type: int
+    default: 100000
+    min: 1
+    max: 8388607
+    description: VMAX register, 1..0x7fffff.
+  dmax:
+    type: int
+    default: 1000
+    min: 1
+    max: 262143
+    description: DMAX register, 1..0x3ffff.
+  tvmax:
+    type: int
+    default: 0
+    min: 0
+    max: 65535
+    description: TVMAX register, 0..0xffff.
+  d1:
+    type: int
+    default: 1
+    min: 1
+    max: 262143
+    description: D1 register, 1..0x3ffff.
+  vstop:
+    type: int
+    default: 10
+    min: 1
+    max: 262143
+    description: VSTOP register, 1..0x3ffff.
+  tzerowait:
+    type: int
+    default: 0
+    min: 0
+    max: 65535
+    description: TZEROWAIT register, 0..0xffff.
+  v2:
+    type: int
+    default: 0
+    min: 0
+    max: 1048575
+    description: V2 register for eight-point ramp, 0..0xfffff.
+  a2:
+    type: int
+    default: 0
+    min: 0
+    max: 262143
+    description: A2 register for eight-point ramp, 0..0x3ffff.
+  d2:
+    type: int
+    default: 10
+    min: 1
+    max: 262143
+    description: D2 register for eight-point ramp, 1..0x3ffff; it must be nonzero even when V2 is 0.
+
+  default-microstep-interval-ns:
+    type: int
+    default: 0
+    min: 0
+    max: 500000000
+    description: |
+      Optional initial interval for velocity mode. A nonzero value is converted
+      to VMAX and therefore overrides the raw vmax property during initialization.
+      Use 0 to retain vmax.

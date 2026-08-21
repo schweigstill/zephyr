@@ -6,6 +6,9 @@
 #include <zephyr/sys/util.h>
 #include <adi_tmc_spi.h>
 
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(stepper_tmc_spi, LOG_LEVEL_INF);
+
 #define BUFFER_SIZE 5U
 
 int tmc_spi_read_register(const struct spi_dt_spec *bus, const uint8_t read_address_mask,
@@ -47,6 +50,7 @@ int tmc_spi_read_register(const struct spi_dt_spec *bus, const uint8_t read_addr
 
 	*data = ((uint32_t)rx_buffer[1] << 24) + ((uint32_t)rx_buffer[2] << 16) +
 		((uint32_t)rx_buffer[3] << 8) + (uint32_t)rx_buffer[4];
+	LOG_DBG("tmc_spi_read_register: SPI_STATUS=0x%02x", rx_buffer[0]);
 
 	return status;
 }
@@ -81,6 +85,7 @@ int tmc_spi_write_register(const struct spi_dt_spec *bus, const uint8_t write_bi
 	if (status < 0) {
 		return status;
 	}
+	LOG_DBG("tmc_spi_read_register: SPI_STATUS=0x%02x", rx_buffer[0]);
 
 	return status;
 }
