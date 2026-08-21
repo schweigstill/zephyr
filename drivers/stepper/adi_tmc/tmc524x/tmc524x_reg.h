@@ -110,6 +110,7 @@
 #define TMC524X_IOIN_VERSION_SHIFT          24
 #define TMC524X_IOIN_VERSION_MASK           GENMASK(31, 24)
 #define TMC524X_IOIN_VERSION_SUPPORTED      0x40U
+#define TMC524X_IOIN_VERSION_SUPPORTED_MASK 0xFEU
 
 /* GSTAT write-1-to-clear bits. */
 #define TMC524X_GSTAT_RESET                 BIT(0)

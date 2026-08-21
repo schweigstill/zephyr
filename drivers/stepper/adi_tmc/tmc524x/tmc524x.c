@@ -368,6 +368,7 @@ static int tmc524x_init(const struct device *dev)
 	const struct tmc524x_config *cfg = dev->config;
 	struct tmc524x_data *data = dev->data;
 	uint32_t ioin;
+	uint32_t ioin_version;
 	int ret;
 
 	if (!spi_is_ready_dt(&cfg->spi)) {
@@ -403,8 +404,10 @@ static int tmc524x_init(const struct device *dev)
 	if (ret != 0) {
 		return ret;
 	}
-	if (TMC524X_GET(ioin, TMC524X_IOIN_VERSION_MASK,
-			TMC524X_IOIN_VERSION_SHIFT) != TMC524X_IOIN_VERSION_SUPPORTED) {
+	ioin_version = TMC524X_GET(ioin, TMC524X_IOIN_VERSION_MASK,
+			TMC524X_IOIN_VERSION_SHIFT);
+
+	if ((ioin_version & TMC524X_IOIN_VERSION_SUPPORTED_MASK) != TMC524X_IOIN_VERSION_SUPPORTED) {
 		LOG_ERR("unsupported or missing TMC5240 (IOIN=0x%08x)", ioin);
 		return -ENODEV;
 	}
