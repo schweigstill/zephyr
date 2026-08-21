@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Prevas A/S
+# SPDX-FileCopyrightText: Copyright (c) 2025 Jilay Sandeep Pandya
+# SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
+# SPDX-License-Identifier: Apache-2.0
+
+config STEPPER_ADI_TMC524X
+	bool "ADI/Trinamic TMC524X (TMC5240) stepper controller/driver"
+	depends on DT_HAS_ADI_TMC524X_ENABLED
+	depends on SPI
+	select GPIO
+	default y
+
+if STEPPER_ADI_TMC524X
+
+config STEPPER_ADI_TMC524X_STEPPER_CTRL
+	bool "TMC524X motion-controller child"
+	depends on DT_HAS_ADI_TMC524X_STEPPER_CTRL_ENABLED
+	default y
+
+config STEPPER_ADI_TMC524X_CTRL_INIT_PRIORITY
+	int "TMC524X motion-controller child init priority"
+	default 91
+	range 0 99
+	depends on STEPPER_ADI_TMC524X_STEPPER_CTRL
+	help
+	  Must be greater than STEPPER_INIT_PRIORITY so the parent and hardware
+	  driver can disable the bridge before warm-start ramp state is touched.
+
+config STEPPER_ADI_TMC524X_STEPPER_DRIVER
+	bool "TMC524X hardware-driver child"
+	depends on DT_HAS_ADI_TMC524X_STEPPER_DRIVER_ENABLED
+	default y
+
+config STEPPER_ADI_TMC524X_CTRL_POLLING
+	bool "Poll motion-controller state and events"
+	default y
+	depends on STEPPER_ADI_TMC524X_STEPPER_CTRL
+	help
+	  Keep enabled when reference switches or StallGuard stop are used. Polling
+	  moves the controller to HOLD after a hardware stop so releasing the stop
+	  source cannot restart an old movement. Event delivery itself remains
+	  optional and depends only on whether a callback is registered.
+
+config STEPPER_ADI_TMC524X_CTRL_POLL_INTERVAL_MS
+	int "Controller event poll interval"
+	default 10
+	range 1 60000
+	depends on STEPPER_ADI_TMC524X_STEPPER_CTRL
+	help
+	  Poll interval in milliseconds for the mandatory stop-to-HOLD monitor and,
+	  when enabled, motion-complete, end-stop, and StallGuard events.
+
+endif # STEPPER_ADI_TMC524X

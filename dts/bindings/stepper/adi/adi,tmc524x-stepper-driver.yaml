@@ -1,0 +1,304 @@
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  TMC524X stepper hardware-driver child node. This child implements
+  zephyr/drivers/stepper/stepper.h and configures the motor-driver feature block.
+  The implementation currently supports the TMC5240 only.
+
+compatible: "adi,tmc524x-stepper-driver"
+
+include: base.yaml
+
+properties:
+  en-gpios:
+    type: phandle-array
+    description: Optional active-low DRV_ENN bridge-enable GPIO.
+
+  micro-step-res:
+    type: int
+    default: 256
+    enum: [1, 2, 4, 8, 16, 32, 64, 128, 256]
+    description: Microsteps per full step.
+
+  ihold:
+    type: int
+    default: 8
+    min: 0
+    max: 31
+    description: Hold current scale, 0..31.
+  irun:
+    type: int
+    default: 16
+    min: 0
+    max: 31
+    description: Run current scale, 0..31.
+  iholddelay:
+    type: int
+    default: 6
+    min: 0
+    max: 15
+    description: Hold-current delay, 0..15.
+  irundelay:
+    type: int
+    default: 0
+    min: 0
+    max: 15
+    description: Run-current delay, 0..15.
+  tpowerdown:
+    type: int
+    default: 10
+    min: 0
+    max: 255
+    description: Delay from standstill to power-down current, 0..255.
+  global-scaler:
+    type: int
+    default: 0
+    min: 0
+    max: 255
+    description: Global current scaler, 0 means power-on/default behaviour, otherwise 32..255.
+
+  current-range:
+    type: int
+    default: 0
+    enum: [0, 1, 2, 3]
+    description: DRV_CONF.CURRENT_RANGE field.
+  slope-control:
+    type: int
+    default: 0
+    enum: [0, 1, 2, 3]
+    description: DRV_CONF.SLOPE_CONTROL field.
+
+  toff:
+    type: int
+    default: 3
+    min: 1
+    max: 15
+    description: CHOPCONF.TOFF value restored by enable(), 1..15.
+  hstrt:
+    type: int
+    default: 5
+    min: 0
+    max: 7
+    description: CHOPCONF.HSTRT, 0..7.
+  hend:
+    type: int
+    default: 2
+    min: -3
+    max: 12
+    description: CHOPCONF.HEND physical value, -3..12; the driver encodes it with offset +3.
+  tbl:
+    type: int
+    default: 2
+    enum: [0, 1, 2, 3]
+    description: CHOPCONF.TBL blank time.
+  chm:
+    type: int
+    default: 0
+    enum: [0, 1]
+    description: CHOPCONF.CHM; 0 SpreadCycle, 1 constant-off-time mode.
+  tpfd:
+    type: int
+    default: 0
+    min: 0
+    max: 15
+    description: CHOPCONF.TPFD, 0..15.
+  interpolation:
+    type: boolean
+    description: Enable 256-microstep interpolation.
+  double-edge-step:
+    type: boolean
+    description: CHOPCONF.DEDGE for external STEP input/output use cases.
+
+  stealthchop2-enable:
+    type: boolean
+    description: Enable StealthChop2 voltage-PWM mode through GCONF.en_pwm_mode.
+  spreadcycle-enable:
+    type: boolean
+    description: Declare SpreadCycle operation. Requires chm=0 and is required for StallGuard2.
+  spreadcycle-stealthchop-hybrid:
+    type: boolean
+    description: Allow StealthChop2/SpreadCycle automatic threshold switching via TPWMTHRS.
+  tpwmthrs:
+    type: int
+    default: 0
+    min: 0
+    max: 1048575
+    description: |
+      Raw inverse-velocity threshold in TSTEP clock units, 0..0xfffff.
+      StealthChop2 is active while TSTEP is greater than TPWMTHRS.
+  tcoolthrs:
+    type: int
+    default: 0
+    min: 0
+    max: 1048575
+    description: |
+      Raw inverse-velocity threshold in TSTEP clock units, 0..0xfffff.
+      StallGuard/CoolStep operation requires TSTEP not greater than TCOOLTHRS.
+  thigh:
+    type: int
+    default: 0
+    min: 0
+    max: 1048575
+    description: |
+      Raw inverse-velocity threshold in TSTEP clock units, 0..0xfffff.
+      At TSTEP less than or equal to THIGH, high-velocity overrides apply.
+
+  pwm-ofs:
+    type: int
+    default: 36
+    min: 0
+    max: 255
+    description: PWMCONF.PWM_OFS, 0..255.
+  pwm-grad:
+    type: int
+    default: 14
+    min: 0
+    max: 255
+    description: PWMCONF.PWM_GRAD, 0..255.
+  pwm-freq:
+    type: int
+    default: 1
+    enum: [0, 1, 2, 3]
+    description: PWMCONF.PWM_FREQ.
+  pwm-autoscale:
+    type: boolean
+    description: Enable automatic PWM amplitude scaling.
+  pwm-autograd:
+    type: boolean
+    description: Enable automatic PWM gradient adaptation.
+  freewheel:
+    type: int
+    default: 0
+    enum: [0, 1, 2, 3]
+    description: PWMCONF.FREEWHEEL.
+  pwm-reg:
+    type: int
+    default: 4
+    min: 0
+    max: 15
+    description: PWMCONF.PWM_REG, 0..15.
+  pwm-lim:
+    type: int
+    default: 12
+    min: 0
+    max: 15
+    description: PWMCONF.PWM_LIM, 0..15.
+
+  stallguard2-enable:
+    type: boolean
+    description: Enable StallGuard2 tuning and optional stop-on-stall in SpreadCycle.
+  stallguard2-threshold:
+    type: int
+    default: 0
+    min: -64
+    max: 63
+    description: COOLCONF.SGT signed threshold, -64..63.
+  stallguard2-filter:
+    type: boolean
+    description: COOLCONF.SFILT filtered StallGuard2 measurement.
+
+  stallguard4-enable:
+    type: boolean
+    description: Enable StallGuard4 thresholding in StealthChop2.
+  stallguard4-threshold:
+    type: int
+    default: 0
+    min: 0
+    max: 255
+    description: SG4_THRS threshold, 0..255.
+  stallguard4-filter:
+    type: boolean
+    description: Enable SG4_THRS.sg4_filt_en.
+  stallguard4-angle-offset:
+    type: boolean
+    description: Enable SG4_THRS.sg_angle_offset.
+
+  coolstep-enable:
+    type: boolean
+    description: Enable CoolStep current scaling. Requires semin > 0, tcoolthrs > 0 and SG2 or SG4.
+  semin:
+    type: int
+    default: 0
+    min: 0
+    max: 15
+    description: COOLCONF.SEMIN, 0 disables CoolStep.
+  seup:
+    type: int
+    default: 0
+    enum: [0, 1, 2, 3]
+    description: COOLCONF.SEUP current up-step width.
+  semax:
+    type: int
+    default: 0
+    min: 0
+    max: 15
+    description: COOLCONF.SEMAX, 0..15.
+  sedn:
+    type: int
+    default: 0
+    enum: [0, 1, 2, 3]
+    description: COOLCONF.SEDN current down-step speed.
+  seimin:
+    type: boolean
+    description: "COOLCONF.SEIMIN minimum current: quarter instead of half of IRUN."
+
+  dcstep-enable:
+    type: boolean
+    description: Enable DcStep configuration registers. Requires SpreadCycle.
+  dc-time:
+    type: int
+    default: 0
+    min: 0
+    max: 1023
+    description: DCCTRL.DC_TIME, 0..1023.
+  dc-sg:
+    type: int
+    default: 0
+    min: 0
+    max: 255
+    description: DCCTRL.DC_SG, 0..255.
+  vdcmin:
+    type: int
+    default: 0
+    min: 0
+    max: 32767
+    description: VDCMIN field value, 0..0x7fff; 0 disables DcStep use by the ramp generator.
+
+  sg-stop-enable:
+    type: boolean
+    description: Enable SW_MODE.sg_stop stop-on-stall for internal motion controller.
+  soft-stop-enable:
+    type: boolean
+    description: Enable SW_MODE.en_softstop. Must not be combined with StallGuard2.
+
+  external-stepdir-enable:
+    type: boolean
+    description: |
+      Use DIAG outputs as STEP/DIR outputs for an external stepper driver. This conflicts
+      with internal feedback features such as StallGuard/CoolStep/DcStep.
+  length-step-pulse:
+    type: int
+    default: 0
+    min: 0
+    max: 15
+    description: GCONF.length_step_pulse, 0..15, for external STEP output pulse length.
+
+  diag0-stall-gpios:
+    type: phandle-array
+    description: |
+      Optional GPIO wired to DIAG0 when that output is used for StallGuard.
+      DIAG0/N_event also carries normal motion-controller and encoder events,
+      so the driver reports a stall only when DRV_STATUS.stallguard or the
+      latched RAMP_STAT.event_stop_sg confirms it. An already-ended, unlatched
+      StallGuard pulse is deliberately not guessed from the edge alone. The
+      driver acknowledges encoder W1C events and also samples DRV_STATUS for a
+      simultaneous fault, but DIAG0 is not a dedicated fault interrupt. The
+      encoder deviation condition can keep N_event asserted even after W1C;
+      do not combine it with this edge-triggered input when uninterrupted
+      StallGuard callback delivery is required. SG2/SG4 pulses that have ended
+      before the deferred status read are intentionally not reported because
+      they cannot be distinguished safely from an already-acknowledged normal
+      N_event source. The driver leaves DIAG0 in its default
+      open-drain, active-low mode; describe it as GPIO_ACTIVE_LOW and provide a
+      pull-up (external or GPIO_PULL_UP). Do not combine this property with
+      external-stepdir-enable, which turns DIAG0 into a STEP output.

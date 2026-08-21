@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Prevas A/S
+# SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Common properties for Analog Devices TMC524X Stepper Motor Controller.
+
+  This binding is retained as the common base for a future UART transport.
+  The current TMC524X driver implementation supports SPI only and does not
+  consume every property declared here yet.
+
+include:
+  - name: adi,trinamic-gconf.yaml
+    property-allowlist:
+      - en-pwm-mode
+      - fast-standstill
+      - length-step-pulse
+
+properties:
+  shaft:
+    type: boolean
+    description: |
+      Inverse motor direction
+
+  clock-frequency:
+    type: int
+    required: true
+    description: |
+      The frequency of the clock signal provided to the TMC524X.
+      This is used for real world conversion.
+
+      Hint: microstep velocity v[Hz] = v[52xx] * (fCLK[Hz] / 2 / 2^23)
+            where v[52xx] is the value written to the TMC524X.
+
+  sleep-gpios:
+    type: phandle-array
+    description: |
+      Reset/Sleep input SLEEPN pin. This pin has to be set to high in order
+      to enable the TMC device. A short low pulse performs a hardware reset.
+      Used in conjunction with hw-reset.
+      Should be configured as push-pull output (active low).
+
+  hw-reset:
+    type: boolean
+    description: |
+      Perform a complete reset cycle on sleep-gpio. The pin is set to low and
+      after a short waiting time set to high. If hw-reset is not set, this
+      explicit low->wait->high cycle is omitted and sleep-gpio is set high
+      immediately. See chapter "External Reset and Sleep Mode" in the TMC524x
+      datasheet.

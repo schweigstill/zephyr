@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 Dipak Shetty
+# SPDX-FileCopyrightText: Copyright (c) 2026 A. Schweigstill
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Analog Devices TMC524X Stepper Motor Controller (UART single-wire mode)
+
+  This binding is a scaffold for a future UART port. The current TMC524X
+  driver implementation supports SPI only; a node using this binding must
+  not be enabled until the UART transport is implemented.
+
+  The future single-wire UART mode uses:
+  - SWIOP connected to the MCU's UART TX/RX pin
+  - SWION connected to half the IO level voltage (1.65V for 3.3V systems)
+  - SW_SEL held HIGH, either by GPIO control or hardwired
+
+compatible: "adi,tmc524x"
+
+include: [uart-device.yaml, "adi,tmc524x-base.yaml"]
+
+properties:
+  sw-sel-gpios:
+    type: phandle-array
+    description: |
+      GPIO connected to the SW_SEL pin of TMC524X.
+      Must be set HIGH for UART mode operation.
+      If not provided, SW_SEL is assumed to be hardwired to VCC/HIGH.
+
+  uart-device-addr:
+    type: int
+    min: 0
+    max: 253
+    description: |
+      UART device address for TMC524X in UART mode.

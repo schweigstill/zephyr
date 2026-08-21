@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  ADI/Trinamic TMC524X smart integrated stepper motor controller and driver.
+
+  This SPI binding and its driver currently support the TMC5240 only.
+
+  The chip is represented as a multi-function device. The parent node handles
+  SPI register access. Child nodes implement Zephyr's split Stepper Hardware
+  Driver and Stepper Motion Controller APIs.
+
+compatible: "adi,tmc524x"
+
+include: [spi-device.yaml]
+
+properties:
+  spi-max-frequency:
+    max: 10000000
+
+  clock-frequency:
+    type: int
+    required: true
+    min: 8000000
+    max: 20000000
+    description: |
+      TMC524X clock in Hz. Use the external clock frequency when CLK is driven
+      externally; otherwise use the internal oscillator frequency configured for
+      the design. The driver uses it for ramp unit conversion.
+
+  sleep-gpios:
+    type: phandle-array
+    description: Optional active-low SLEEPN pin. Use GPIO_ACTIVE_LOW.
