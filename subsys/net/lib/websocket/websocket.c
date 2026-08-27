@@ -1254,6 +1254,33 @@ static struct websocket_context *websocket_search(int sock)
 	return ctx;
 }
 
+int websocket_set_recv_buffer(int sock, uint8_t *recv_buf, size_t recv_buf_len)
+{
+	struct websocket_context *ctx;
+	int ret = 0;
+
+	if ((sock < 0) || (recv_buf == NULL) || (recv_buf_len == 0U)) {
+		return -EINVAL;
+	}
+
+	ctx = websocket_search(sock);
+	if (ctx == NULL) {
+		return -ENOENT;
+	}
+
+	k_mutex_lock(&ctx->lock, K_FOREVER);
+	if ((ctx->recv_buf.count != 0U) ||
+	    (ctx->parser_state != WEBSOCKET_PARSER_STATE_OPCODE)) {
+		ret = -EBUSY;
+	} else {
+		ctx->recv_buf.buf = recv_buf;
+		ctx->recv_buf.size = recv_buf_len;
+	}
+	k_mutex_unlock(&ctx->lock);
+
+	return ret;
+}
+
 int websocket_unregister(int sock)
 {
 	struct websocket_context *ctx;
