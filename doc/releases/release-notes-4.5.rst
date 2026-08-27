@@ -75,6 +75,10 @@ Removed APIs and options
       * ``CONFIG_PLATFORM_SPECIFIC_INIT``
       * ``z_arm_platform_init()``
 
+   * RISC-V
+
+      * ``CONFIG_EXTRA_EXCEPTION_INFO``
+
    * x86
 
       * ``CONFIG_SSE``
@@ -85,6 +89,10 @@ Removed APIs and options
       * ``CONFIG_XTENSA_BACKTRACE_EXCEPTION_DUMP_HOOK``
 
 * Bluetooth
+
+  * Controller
+
+    * ``CONFIG_BT_CTRL_ADV_ADI_IN_SCAN_RSP``
 
   * Host
 
@@ -104,6 +112,55 @@ Removed APIs and options
       buffers unconditionally. Applications still setting these options can
       simply drop them.
 
+    * ``CONFIG_BT_AUTO_PHY_UPDATE``, replaced by the ``BT_AUTO_PHY_CENTRAL`` and
+      ``BT_AUTO_PHY_PERIPHERAL`` choices
+    * ``_bt_gatt_ccc``
+    * ``BT_GATT_CCC_INITIALIZER``
+    * ``CONFIG_BT_CONN_TX_MAX``
+    * ``CONFIG_BT_FIXED_PASSKEY``
+    * ``bt_passkey_set()``
+    * ``BT_PASSKEY_INVALID``
+
+  * Mesh
+
+    * ``CONFIG_BT_MESH_BLOB_IO_FLASH_WITH_ERASE``
+    * ``CONFIG_BT_MESH_BLOB_IO_FLASH_WITHOUT_ERASE``
+
+  * Services
+
+    * ``CONFIG_BT_DIS_MANUF``
+    * ``CONFIG_BT_DIS_MODEL``
+
+* Boards
+
+    * Dropped the following deprecated board aliases:
+
+      * ``arduino_uno_r4_minima``
+      * ``arduino_uno_r4_wifi``
+      * ``esp32c6_devkitc``
+      * ``esp32_devkitc_wroom/esp32/procpu``
+      * ``esp32_devkitc_wroom/esp32/appcpu``
+      * ``esp32_devkitc_wrover/esp32/procpu``
+      * ``esp32_devkitc_wrover/esp32/appcpu``
+      * ``neorv32``
+      * ``panb511evb``
+      * ``raytac_an54l15q_db/nrf54l15/cpuapp``
+      * ``scobc_module1``
+      * ``xiao_esp32c6``
+
+* Build system
+
+    * ``CONFIG_BUILD_NO_GAP_FILL``
+    * ``cmake/app/boilerplate.cmake``
+    * Board revision Kconfig fragments named ``<board>_<revision>.conf``, replaced by
+      ``<board>_<revision>_defconfig``
+    * Pattern expansion in ``zephyr_code_relocate(FILES ...)``, replaced by ``file(GLOB ...)``
+
+* CAN
+
+    * ``bus-speed``
+    * ``bus-speed-data``
+
 * Comparator
 
     * ``nxp,enable-output-pin``, ``nxp,use-unfiltered-output``, ``nxp,high-speed-mode``,
@@ -118,6 +175,17 @@ Removed APIs and options
 * LLEXT
 
     * ``llext_get_fn_table``, replaced by ``llext_get_fn_table_entry``
+
+* Mbed TLS
+
+    * ``CONFIG_MBEDTLS_MD``
+    * ``CONFIG_MBEDTLS_LMS``
+    * ``CONFIG_MBEDTLS_TLS_VERSION_1_2``
+    * ``CONFIG_MBEDTLS_DTLS``
+    * ``CONFIG_MBEDTLS_TLS_VERSION_1_3``
+    * ``CONFIG_MBEDTLS_TLS_SESSION_TICKETS``
+    * ``CONFIG_MBEDTLS_CTR_DRBG_ENABLED``
+    * ``CONFIG_MBEDTLS_HMAC_DRBG_ENABLED``
 
 * MCUboot
 
@@ -157,6 +225,12 @@ Removed APIs and options
 
     * ``CONFIG_CTR_DRBG_CSPRNG_GENERATOR``
     * ``CONFIG_CS_CTR_DRBG_PERSONALIZATION``
+
+* SPI
+
+    * The optional delay argument of :c:macro:`SPI_CONFIG_DT`, :c:macro:`SPI_CONFIG_DT_INST`,
+      :c:macro:`SPI_DT_SPEC_GET`, :c:macro:`SPI_DT_SPEC_INST_GET`, :c:macro:`SPI_DT_IODEV_DEFINE`,
+      :c:macro:`SPI_DT_INST_IODEV_DEFINE` and :c:macro:`SPI_CS_CONTROL_INIT` has been removed.
 
 * Stream Flash
 
@@ -249,6 +323,13 @@ Deprecated APIs and options
   * All functions in the video driver API (``<zephyr/drivers/video.h>``) have moved to the video
     subsystem (``<zephyr/video/video.h>``). Application only need to rename the ``#include``.
 
+* West
+
+  * ``west spdx --init`` is deprecated. A build with
+    :kconfig:option:`CONFIG_BUILD_OUTPUT_META` now asks CMake for the file-based API that
+    ``west spdx`` reads, so the build directory no longer has to be prepared before it is
+    configured. See :ref:`west-spdx`.
+
 * Work queue
 
   * :c:member:`k_work_q.thread` has been deprecated. Use :c:member:`k_work_q.thread_id` instead.
@@ -294,6 +375,16 @@ New APIs and options
     * :c:func:`bt_ascs_unregister`
     * :c:func:`bt_bap_unicast_client_qos_from_group`
     * :c:func:`bt_bap_qos_cfg_eq`
+    * :c:member:`bt_bap_unicast_group_info.c_to_p_interval`
+    * :c:member:`bt_bap_unicast_group_info.p_to_c_interval`
+    * :c:member:`bt_bap_unicast_group_info.c_to_p_latency`
+    * :c:member:`bt_bap_unicast_group_info.p_to_c_latency`
+    * :c:member:`bt_bap_unicast_group_info.framing`
+    * :c:member:`bt_bap_unicast_group_info.packing`
+    * :c:member:`bt_bap_unicast_group_info.has_been_connected`
+    * :c:member:`bt_bap_unicast_group_info.c_to_p_ft`
+    * :c:member:`bt_bap_unicast_group_info.p_to_c_ft`
+    * :c:member:`bt_bap_unicast_group_info.iso_interval`
 
   * Host
 
@@ -357,6 +448,11 @@ New APIs and options
   * :c:macro:`K_MSGQ_DEFINE_TYPE`
   * :c:macro:`K_MSGQ_DEFINE_STATIC_TYPE`
   * :c:func:`k_sleep_ticks`
+  * Namespaced equivalents of the interrupt control APIs, preferred for new
+    code; the unprefixed names remain fully supported:
+    :c:func:`k_irq_lock`, :c:func:`k_irq_unlock`, :c:func:`k_irq_enable`,
+    :c:func:`k_irq_disable`, :c:func:`k_irq_is_enabled`,
+    :c:func:`k_irq_connect_dynamic` and :c:func:`k_irq_disconnect_dynamic`
 
 * LoRa
 
@@ -579,8 +675,11 @@ Libraries / Subsystems
 
 * TF-M
 
-  * TF-M was updated from version 2.2.2 to version 2.3.0. Release notes can be
-    found `here <https://trustedfirmware-m.readthedocs.io/en/tf-mv2.3.0/releases/2.3.0.htm>`_.
+  * TF-M was updated from version 2.2.2 to version 2.3.1. Release notes can be
+    found at:
+
+    * https://trustedfirmware-m.readthedocs.io/en/latest/releases/2.3.0.html
+    * https://trustedfirmware-m.readthedocs.io/en/tf-mv2.3.1/releases/2.3.1.html
 
   * TF-M can now be compiled using LLVM by setting ``ZEPHYR_TOOLCHAIN_VARIANT``
     to ``zephyr/llvm``.

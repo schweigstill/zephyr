@@ -42,6 +42,26 @@ Build System
   :kconfig:option:`CONFIG_SOC`, :kconfig:option:`CONFIG_SOC_SERIES`,
   :kconfig:option:`CONFIG_SOC_FAMILY` and ``SOC_FULL_DIR``.
 
+* ``CONFIG_BUILD_NO_GAP_FILL`` has been removed. Gap filling is opt-in through
+  :kconfig:option:`CONFIG_BUILD_OUTPUT_HEX_GAP_FILL` and
+  :kconfig:option:`CONFIG_BUILD_OUTPUT_S19_GAP_FILL`, so simply drop the option.
+
+* :file:`cmake/app/boilerplate.cmake` has been removed. Applications still
+  including it directly must start their :file:`CMakeLists.txt` with
+  ``find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})`` instead.
+
+* Board revision Kconfig fragments named :file:`<board>_<revision>.conf` are no
+  longer read. Rename them to :file:`<board>_<revision>_defconfig`.
+
+* ``zephyr_code_relocate(FILES ...)`` no longer expands wildcard patterns, and
+  now fails on one. Expand the pattern with ``file(GLOB ...)`` and pass the
+  resulting file names instead.
+
+* ``west spdx --init`` is deprecated and will be removed in Zephyr 5.0. A build with
+  :kconfig:option:`CONFIG_BUILD_OUTPUT_META` now asks CMake for the file-based API object model
+  that ``west spdx`` reads, so generating an SBOM no longer needs the build directory to be
+  prepared beforehand: build as usual, then run ``west spdx``.
+
 Kernel
 ******
 
@@ -197,6 +217,23 @@ Boards
   or :c:func:`spi_transceive_cb` without DMA) on an affected board must now explicitly enable
   :kconfig:option:`CONFIG_SPI_STM32_INTERRUPT` in their own configuration. (:github:`116218`)
 
+* The following board name aliases, deprecated in v4.3 or earlier, have been removed
+  (:github:`116657`, :github:`116750`). Build for the board target the alias used to
+  redirect to instead:
+
+  * ``arduino_uno_r4_minima`` → ``arduino_uno_r4@minima``
+  * ``arduino_uno_r4_wifi`` → ``arduino_uno_r4@wifi``
+  * ``esp32c6_devkitc`` → ``esp32c6_devkitc/esp32c6/hpcore``
+  * ``esp32_devkitc_wroom/esp32/procpu`` and ``esp32_devkitc_wrover/esp32/procpu`` →
+    ``esp32_devkitc/esp32/procpu``
+  * ``esp32_devkitc_wroom/esp32/appcpu`` and ``esp32_devkitc_wrover/esp32/appcpu`` →
+    ``esp32_devkitc/esp32/appcpu``
+  * ``neorv32`` → ``neorv32/neorv32/up5kdemo``
+  * ``panb511evb`` → ``panb611evb``
+  * ``raytac_an54l15q_db/nrf54l15/cpuapp`` → ``raytac_an54lq_db_15/nrf54l15/cpuapp``
+  * ``scobc_module1`` → ``scobc_a1``
+  * ``xiao_esp32c6`` → ``xiao_esp32c6/esp32c6/hpcore``
+
 Device Drivers and Devicetree
 *****************************
 
@@ -231,6 +268,26 @@ ADC
   :kconfig:option:`CONFIG_ADC_MCUX_LPADC` is enabled, and its ``default y`` is now scoped to that
   condition. In-tree boards no longer enable it explicitly in their defconfigs since
   the default already covers them.
+
+Analog Devices
+==============
+
+* :kconfig:option:`CONFIG_NUM_IRQS` is now computed automatically for all MAX32 SoCs from the
+  devicetree, based on active (``status = "okay";``) devices, using the
+  ``dt_highest_controller_irq_number`` Kconfig preprocessor function. The hardcoded per-SoC values
+  have been removed, and the resulting IRQ table is typically considerably smaller than before.
+  Applications which register custom ISRs (using :c:macro:`IRQ_CONNECT()`) may encounter build
+  failures such as the following due to :kconfig:option:`CONFIG_NUM_IRQS` having a lower value:
+
+  .. code-block::
+
+    gen_isr_tables.py: error: IRQ 88 (offset=0) exceeds the maximum of 54
+
+  Explicitly set :kconfig:option:`CONFIG_NUM_IRQS` to an appropriate value to solve these issues.
+  (:ref:`The following documentation page <setting_configuration_values>` explains how to do it)
+
+  Applications that install ISRs at runtime with :c:func:`irq_connect_dynamic` are not covered by
+  this build-time check and must be reviewed manually.
 
 Audio Codec
 ===========
@@ -269,6 +326,9 @@ Controller Area Network (CAN)
 * The Bosch M_CAN driver now solely uses RX FIFO0 for processing received CAN frames, ensuring these
   are processed in the order received on the bus. Out-of-tree users may want to update any
   ``bosch,mram-cfg`` devicetree property overrides to allocate all FIFO elements to RX FIFO0.
+
+* The deprecated ``bus-speed`` and ``bus-speed-data`` CAN controller devicetree properties have
+  been removed. Use ``bitrate`` and ``bitrate-data`` instead.
 
 Counter
 =======
@@ -939,6 +999,12 @@ SPI
   FIFO is now always used in polling and interrupt mode to enhance performance. A new property
   ``st,fifo-threshold`` can be used to configure the FIFO threshold (default = 1). (:github:`110265`)
 
+* The optional delay argument of :c:macro:`SPI_CONFIG_DT`, :c:macro:`SPI_CONFIG_DT_INST`,
+  :c:macro:`SPI_DT_SPEC_GET`, :c:macro:`SPI_DT_SPEC_INST_GET`, :c:macro:`SPI_DT_IODEV_DEFINE`,
+  :c:macro:`SPI_DT_INST_IODEV_DEFINE` and :c:macro:`SPI_CS_CONTROL_INIT` has been removed; drop
+  it from every invocation. Use the ``spi-cs-setup-delay-ns`` and ``spi-cs-hold-delay-ns``
+  devicetree properties instead (note that they are in nanoseconds rather than microseconds).
+
 Stepper
 =======
 
@@ -1392,6 +1458,23 @@ Bluetooth Host
   should review their synchronization and callback stack requirements. See
   pull request :github:`93033` for details.
 
+* ``CONFIG_BT_AUTO_PHY_UPDATE`` has been removed. Use the per-role ``BT_AUTO_PHY_CENTRAL``
+  and ``BT_AUTO_PHY_PERIPHERAL`` choices instead. ``=n`` does not translate to dropping the
+  option: the central choice defaults to :kconfig:option:`CONFIG_BT_AUTO_PHY_CENTRAL_2M`, so
+  both roles must be set to ``_NONE`` explicitly.
+
+* The deprecated ``CONFIG_BT_CONN_TX_MAX`` Kconfig option has been removed. It has been
+  deprecated since Zephyr 4.2, and the number of pending TX buffers with a callback always
+  follows :kconfig:option:`CONFIG_BT_BUF_ACL_TX_COUNT`.
+
+Bluetooth Mesh
+==============
+
+* The deprecated ``CONFIG_BT_MESH_BLOB_IO_FLASH_WITH_ERASE`` and
+  ``CONFIG_BT_MESH_BLOB_IO_FLASH_WITHOUT_ERASE`` Kconfig options have been removed, with no
+  replacement. They have been deprecated since Zephyr 4.3, where the BLOB IO Flash module
+  started querying the erase capability at runtime, and have had no effect since.
+
 Bluetooth Services
 ==================
 
@@ -1737,6 +1820,20 @@ hal_nxp
 Mbed TLS
 ========
 
+* The following deprecated Kconfig options have been removed:
+
+  * ``CONFIG_MBEDTLS_MD`` -> :kconfig:option:`CONFIG_MBEDTLS_MD_C`
+  * ``CONFIG_MBEDTLS_LMS`` -> :kconfig:option:`CONFIG_MBEDTLS_LMS_C`
+  * ``CONFIG_MBEDTLS_TLS_VERSION_1_2`` -> :kconfig:option:`CONFIG_MBEDTLS_SSL_PROTO_TLS1_2`
+  * ``CONFIG_MBEDTLS_DTLS`` -> :kconfig:option:`CONFIG_MBEDTLS_SSL_PROTO_DTLS`
+  * ``CONFIG_MBEDTLS_TLS_VERSION_1_3`` -> :kconfig:option:`CONFIG_MBEDTLS_SSL_PROTO_TLS1_3`
+  * ``CONFIG_MBEDTLS_TLS_SESSION_TICKETS`` ->
+    :kconfig:option:`CONFIG_MBEDTLS_SSL_SESSION_TICKETS`
+  * ``CONFIG_MBEDTLS_CTR_DRBG_ENABLED`` -> :kconfig:option:`CONFIG_MBEDTLS_CTR_DRBG_C`
+  * ``CONFIG_MBEDTLS_HMAC_DRBG_ENABLED`` -> :kconfig:option:`CONFIG_MBEDTLS_HMAC_DRBG_C`
+
+  Unlike the removed options, the new ones do not enable their dependencies automatically.
+
 * :kconfig:option:`CONFIG_MBEDTLS_SSL_EARLY_DATA` is now an explicit opt-in and is no longer
   implicitly enabled by :kconfig:option:`CONFIG_MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED`.
   Out-of-tree applications or board configurations that rely on TLS 1.3 PSK early data (0-RTT)
@@ -1829,6 +1926,9 @@ Architectures
   hook to :c:func:`soc_reset_hook`. The new hook runs later in the reset path,
   after the stack pointers have been set up, and is skipped on resume from
   suspend-to-RAM.
+
+* The RISC-V specific ``CONFIG_EXTRA_EXCEPTION_INFO`` has been removed. Use
+  :kconfig:option:`CONFIG_EXCEPTION_DEBUG` instead. The option is unchanged on Arm and SPARC.
 
 Video
 =====
