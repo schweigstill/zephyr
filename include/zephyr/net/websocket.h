@@ -205,6 +205,23 @@ int websocket_disconnect(int ws_sock);
 int websocket_register(int http_sock, uint8_t *recv_buf, size_t recv_buf_len);
 
 /**
+ * @brief Replace the temporary receive buffer of a registered websocket.
+ *
+ * This is intended for HTTP servers whose resource descriptor is shared by
+ * several concurrent connections. It must be called before receiving the
+ * first websocket frame. The replacement buffer must remain valid for the
+ * complete websocket session.
+ *
+ * @param ws_sock Websocket id returned by websocket_register().
+ * @param recv_buf New temporary receive buffer.
+ * @param recv_buf_len Length of the new receive buffer.
+ *
+ * @return 0 on success, -EBUSY if frame parsing already started, or another
+ * negative errno value on failure.
+ */
+int websocket_set_recv_buffer(int ws_sock, uint8_t *recv_buf, size_t recv_buf_len);
+
+/**
  * @brief Unregister a websocket. This is called when we no longer need
  *        the underlying "real" socket. This will close first the websocket
  *        and then the original socket.
