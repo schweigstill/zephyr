@@ -55,12 +55,22 @@ struct tmc524x_stepper_ctrl_data {
 #endif
 };
 
-static uint32_t tmc524x_hz_to_vreg(const struct device *controller, uint32_t microsteps_per_second)
+static int tmc524x_hz_to_vreg_checked(const struct device *controller,
+				      uint32_t microsteps_per_second,
+				      uint32_t *value)
 {
 	uint32_t fclk = tmc524x_get_clock_frequency(controller);
-	uint64_t reg = ((uint64_t)microsteps_per_second << 24) / fclk;
+	uint64_t reg;
 
-	return MIN(reg, 0x7fffffU);
+	if (value == NULL || fclk == 0U || microsteps_per_second == 0U) {
+		return -EINVAL;
+	}
+	reg = ((uint64_t)microsteps_per_second << 24) / fclk;
+	if (reg == 0U || reg > 0x7fffffU) {
+		return -ERANGE;
+	}
+	*value = (uint32_t)reg;
+	return 0;
 }
 
 static uint32_t tmc524x_u32_lshift_div_u64_sat(uint32_t value, uint8_t shift,
@@ -106,12 +116,24 @@ static uint32_t tmc524x_u32_lshift_div_u64_sat(uint32_t value, uint8_t shift,
 	return quot;
 }
 
-static uint32_t tmc524x_accel_to_areg(const struct device *controller, uint32_t microsteps_per_second2)
+static int tmc524x_accel_to_areg_checked(const struct device *controller,
+					 uint32_t microsteps_per_second2,
+					 uint32_t *value)
 {
 	uint32_t fclk = tmc524x_get_clock_frequency(controller);
 	uint64_t denom = (uint64_t)fclk * (uint64_t)fclk;
+	uint32_t reg;
 
-	return tmc524x_u32_lshift_div_u64_sat(microsteps_per_second2, 42, denom, 0x3ffffU);
+	if (value == NULL || fclk == 0U || microsteps_per_second2 == 0U) {
+		return -EINVAL;
+	}
+	reg = tmc524x_u32_lshift_div_u64_sat(
+		microsteps_per_second2, 42, denom, UINT32_MAX);
+	if (reg == 0U || reg > 0x3ffffU) {
+		return -ERANGE;
+	}
+	*value = reg;
+	return 0;
 }
 
 static int32_t tmc524x_read_s24(const struct device *controller, uint8_t reg, int32_t *value)
@@ -463,9 +485,9 @@ static int tmc524x_stepper_ctrl_set_microstep_interval(const struct device *dev,
 	if (speed == 0U) {
 		return -ERANGE;
 	}
-	velocity_reg = tmc524x_hz_to_vreg(cfg->controller, speed);
-	if (velocity_reg == 0U) {
-		return -ERANGE;
+	ret = tmc524x_hz_to_vreg_checked(cfg->controller, speed, &velocity_reg);
+	if (ret != 0) {
+		return ret;
 	}
 
 	k_mutex_lock(&data->lock, K_FOREVER);
@@ -497,11 +519,18 @@ static int tmc524x_stepper_ctrl_configure_ramp(const struct device *dev,
 		return -EINVAL;
 	}
 
-	amax = tmc524x_accel_to_areg(cfg->controller, ramp->acceleration_max);
-	vmax = tmc524x_hz_to_vreg(cfg->controller, ramp->speed_max);
-	dmax = tmc524x_accel_to_areg(cfg->controller, ramp->deceleration_max);
-	if (amax == 0U || vmax == 0U || dmax == 0U) {
-		return -ERANGE;
+	ret = tmc524x_accel_to_areg_checked(cfg->controller,
+					    ramp->acceleration_max, &amax);
+	if (ret == 0) {
+		ret = tmc524x_hz_to_vreg_checked(cfg->controller,
+					   ramp->speed_max, &vmax);
+	}
+	if (ret == 0) {
+		ret = tmc524x_accel_to_areg_checked(cfg->controller,
+					    ramp->deceleration_max, &dmax);
+	}
+	if (ret != 0) {
+		return ret;
 	}
 
 	k_mutex_lock(&data->lock, K_FOREVER);
