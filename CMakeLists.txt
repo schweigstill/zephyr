@@ -1938,6 +1938,9 @@ endif()
 
 set(KERNEL_META_PATH  ${PROJECT_BINARY_DIR}/${KERNEL_META_NAME} CACHE INTERNAL "")
 if(CONFIG_BUILD_OUTPUT_META)
+  # SBOM tooling reads CMake's object model alongside this metadata.
+  cmake_file_api(QUERY API_VERSION 1 CODEMODEL 2 TOOLCHAINS 1)
+
   list(APPEND
     post_build_commands
     COMMAND ${PYTHON_EXECUTABLE} ${ZEPHYR_BASE}/scripts/zephyr_module.py
@@ -2315,7 +2318,6 @@ if(HEX_FILES_TO_MERGE)
     )
 
   add_custom_target(mergehex ALL DEPENDS ${MERGED_HEX_NAME})
-  list(APPEND RUNNERS_DEPS mergehex)
 
   message(VERBOSE "Merging hex files: ${HEX_FILES_TO_MERGE}")
 endif()

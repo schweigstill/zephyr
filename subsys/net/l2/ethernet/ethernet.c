@@ -295,10 +295,6 @@ static struct ethernet_context *ethernet_mcast_ctx(struct net_if *iface)
 		return NULL;
 	}
 
-	if (!(net_eth_get_hw_capabilities(iface) & ETHERNET_HW_FILTERING)) {
-		return NULL;
-	}
-
 	return net_if_l2_data(iface);
 }
 
@@ -867,10 +863,16 @@ static struct net_buf *ethernet_fill_header(struct ethernet_context *ctx,
 		net_pkt_vlan_tag(pkt) != NET_VLAN_TAG_UNSPEC;
 
 	reserve_ll_header = get_reserve_ll_header_size(is_vlan);
-	if (reserve_ll_header > 0) {
+	if ((reserve_ll_header > 0) && (reserve_ll_header <= net_buf_headroom(pkt->buffer))) {
 		hdr_len = reserve_ll_header;
 		hdr_frag = pkt->buffer;
 	} else {
+		/*
+		 * Packets can be allocated by a different L2 and forwarded to
+		 * Ethernet. Such packets do not have the Ethernet header space
+		 * reserved by ethernet_l2_alloc(), so use a separate fragment.
+		 */
+		reserve_ll_header = 0U;
 		hdr_len = IS_ENABLED(CONFIG_NET_VLAN) ?
 			sizeof(struct net_eth_vlan_hdr) :
 			sizeof(struct net_eth_hdr);

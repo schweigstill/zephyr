@@ -157,6 +157,37 @@ enum {
 	BT_ADV_NUM_FLAGS,
 };
 
+#if defined(CONFIG_BT_PER_ADV_RSP_REASSEMBLY)
+/* Maximum size of a reassembled PAwR response for a single response slot.
+ * An AUX_SYNC_SUBEVENT_RSP PDU cannot carry an AuxPtr (Core 6.3 Vol 6 Part B,
+ * Table 2.9), so a response is at most 254 octets, which matches the 0-254
+ * range of Response_Data_Length in LE Set Periodic Advertising Response Data
+ * (Core 6.3 Vol 4 Part E, 7.8.126).
+ */
+#define BT_PER_ADV_RSP_REASSEMBLY_BUF_SIZE 254
+
+/* Reassembly state for fragmented periodic advertising response reports */
+struct pawr_rsp_reassembly {
+	/* Buffer used to reassemble the fragmented response data */
+	struct net_buf_simple buf;
+
+	/* Backing storage for the reassembly buffer */
+	uint8_t reassembly_data[BT_PER_ADV_RSP_REASSEMBLY_BUF_SIZE];
+
+	/* Subevent of the response being reassembled */
+	uint8_t subevent;
+
+	/* Response slot of the response being reassembled */
+	uint8_t response_slot;
+
+	/* True if the current response chain overflowed the reassembly buffer.
+	 * The remaining fragments, up to and including the terminating COMPLETE
+	 * fragment, are dropped instead of being reported to the application.
+	 */
+	bool report_truncated;
+};
+#endif /* CONFIG_BT_PER_ADV_RSP_REASSEMBLY */
+
 struct bt_le_ext_adv {
 	/* ID Address used for advertising */
 	uint8_t                 id;
@@ -175,8 +206,18 @@ struct bt_le_ext_adv {
 	const struct bt_le_ext_adv_cb *cb;
 #endif /* defined(CONFIG_BT_EXT_ADV) */
 
-	/* Current local Random Address */
-	bt_addr_le_t            random_addr;
+#if defined(CONFIG_BT_PER_ADV_RSP_REASSEMBLY)
+	/* Reassembly state for fragmented periodic advertising response reports */
+	struct pawr_rsp_reassembly pawr_rsp_reassembly;
+#endif /* CONFIG_BT_PER_ADV_RSP_REASSEMBLY */
+
+	/* Address this set advertises with. Updated by
+	 * bt_id_set_adv_random_addr() when a per-set random address is
+	 * programmed, and by bt_id_save_adv_addr() for the address types
+	 * that are not programmed per-set. bt_le_ext_adv_get_info() hands
+	 * out a pointer to it.
+	 */
+	bt_addr_le_t            adv_addr;
 
 	/* Current target address */
 	bt_addr_le_t            target_addr;
@@ -342,14 +383,15 @@ struct bt_dev {
 	/* Pointer to reserved advertising set */
 	struct bt_le_ext_adv    *adv;
 #if defined(CONFIG_BT_CONN) && (CONFIG_BT_EXT_ADV_MAX_ADV_SET > 1)
-	/* When supporting multiple concurrent connectable advertising sets
-	 * with multiple identities, we need to know the identity of
-	 * the terminating advertising set to identify the connection object.
-	 * The identity of the advertising set is determined by its
-	 * advertising handle, which is part of the
-	 * LE Set Advertising Set Terminated event which is always sent
-	 * _after_ the LE Enhanced Connection complete event.
-	 * Therefore we need cache this event until its identity is known.
+	/* When supporting multiple concurrent connectable advertising sets,
+	 * we need to know the identity of the terminating advertising set to
+	 * identify the connection object. If multiple sets share an identity,
+	 * we also need to know whether the terminating set is directed or
+	 * undirected to select the corresponding connection reservation. The
+	 * advertising set is identified by its advertising handle, which is part
+	 * of the LE Advertising Set Terminated event which is always sent _after_
+	 * the LE Enhanced Connection Complete event. Therefore we need to cache
+	 * this event until its advertising set is known.
 	 */
 	struct {
 		bool valid;
@@ -516,7 +558,8 @@ void bt_hci_user_passkey_req(struct net_buf *buf);
 void bt_hci_auth_complete(struct net_buf *buf);
 
 /* Common HCI event handlers */
-void bt_hci_le_enh_conn_complete(struct bt_hci_evt_le_enh_conn_complete *evt);
+void bt_hci_le_enh_conn_complete(struct bt_hci_evt_le_enh_conn_complete *evt,
+				 const struct bt_le_ext_adv *ext_adv);
 
 /* Scan HCI event handlers */
 void bt_hci_le_adv_report(struct net_buf *buf);

@@ -42,6 +42,36 @@ Build System
   :kconfig:option:`CONFIG_SOC`, :kconfig:option:`CONFIG_SOC_SERIES`,
   :kconfig:option:`CONFIG_SOC_FAMILY` and ``SOC_FULL_DIR``.
 
+* ``CONFIG_BUILD_NO_GAP_FILL`` has been removed. Gap filling is opt-in through
+  :kconfig:option:`CONFIG_BUILD_OUTPUT_HEX_GAP_FILL` and
+  :kconfig:option:`CONFIG_BUILD_OUTPUT_S19_GAP_FILL`, so simply drop the option.
+
+* :file:`cmake/app/boilerplate.cmake` has been removed. Applications still
+  including it directly must start their :file:`CMakeLists.txt` with
+  ``find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})`` instead.
+
+* Board revision Kconfig fragments named :file:`<board>_<revision>.conf` are no
+  longer read. Rename them to :file:`<board>_<revision>_defconfig`.
+
+* ``zephyr_code_relocate(FILES ...)`` no longer expands wildcard patterns, and
+  now fails on one. Expand the pattern with ``file(GLOB ...)`` and pass the
+  resulting file names instead.
+
+* The ``ZephyrUnittest`` CMake package, deprecated since Zephyr 3.1, has been removed and
+  ``west zephyr-export`` no longer registers it. Use
+  ``find_package(Zephyr COMPONENTS unittest)`` instead of ``find_package(ZephyrUnittest)``.
+
+* ``west spdx --init`` is deprecated and will be removed in Zephyr 5.0. A build with
+  :kconfig:option:`CONFIG_BUILD_OUTPUT_META` now asks CMake for the file-based API object model
+  that ``west spdx`` reads, so generating an SBOM no longer needs the build directory to be
+  prepared beforehand: build as usual, then run ``west spdx``.
+
+* The CMake ``flash``, ``debug``, ``debugserver``, ``attach`` and ``rtt`` targets have been
+  removed. Use ``west flash``, ``west debug``, ``west debugserver``, ``west attach`` and
+  ``west rtt`` instead. The emulation ``run`` and ``debugserver`` targets are unaffected.
+
+* The ``WEST_DIR`` build system variable is no longer used.
+
 Kernel
 ******
 
@@ -197,6 +227,23 @@ Boards
   or :c:func:`spi_transceive_cb` without DMA) on an affected board must now explicitly enable
   :kconfig:option:`CONFIG_SPI_STM32_INTERRUPT` in their own configuration. (:github:`116218`)
 
+* The following board name aliases, deprecated in v4.3 or earlier, have been removed
+  (:github:`116657`, :github:`116750`). Build for the board target the alias used to
+  redirect to instead:
+
+  * ``arduino_uno_r4_minima`` → ``arduino_uno_r4@minima``
+  * ``arduino_uno_r4_wifi`` → ``arduino_uno_r4@wifi``
+  * ``esp32c6_devkitc`` → ``esp32c6_devkitc/esp32c6/hpcore``
+  * ``esp32_devkitc_wroom/esp32/procpu`` and ``esp32_devkitc_wrover/esp32/procpu`` →
+    ``esp32_devkitc/esp32/procpu``
+  * ``esp32_devkitc_wroom/esp32/appcpu`` and ``esp32_devkitc_wrover/esp32/appcpu`` →
+    ``esp32_devkitc/esp32/appcpu``
+  * ``neorv32`` → ``neorv32/neorv32/up5kdemo``
+  * ``panb511evb`` → ``panb611evb``
+  * ``raytac_an54l15q_db/nrf54l15/cpuapp`` → ``raytac_an54lq_db_15/nrf54l15/cpuapp``
+  * ``scobc_module1`` → ``scobc_a1``
+  * ``xiao_esp32c6`` → ``xiao_esp32c6/esp32c6/hpcore``
+
 Device Drivers and Devicetree
 *****************************
 
@@ -231,6 +278,26 @@ ADC
   :kconfig:option:`CONFIG_ADC_MCUX_LPADC` is enabled, and its ``default y`` is now scoped to that
   condition. In-tree boards no longer enable it explicitly in their defconfigs since
   the default already covers them.
+
+Analog Devices
+==============
+
+* :kconfig:option:`CONFIG_NUM_IRQS` is now computed automatically for all MAX32 SoCs from the
+  devicetree, based on active (``status = "okay";``) devices, using the
+  ``dt_highest_controller_irq_number`` Kconfig preprocessor function. The hardcoded per-SoC values
+  have been removed, and the resulting IRQ table is typically considerably smaller than before.
+  Applications which register custom ISRs (using :c:macro:`IRQ_CONNECT()`) may encounter build
+  failures such as the following due to :kconfig:option:`CONFIG_NUM_IRQS` having a lower value:
+
+  .. code-block::
+
+    gen_isr_tables.py: error: IRQ 88 (offset=0) exceeds the maximum of 54
+
+  Explicitly set :kconfig:option:`CONFIG_NUM_IRQS` to an appropriate value to solve these issues.
+  (:ref:`The following documentation page <setting_configuration_values>` explains how to do it)
+
+  Applications that install ISRs at runtime with :c:func:`irq_connect_dynamic` are not covered by
+  this build-time check and must be reviewed manually.
 
 Audio Codec
 ===========
@@ -269,6 +336,9 @@ Controller Area Network (CAN)
 * The Bosch M_CAN driver now solely uses RX FIFO0 for processing received CAN frames, ensuring these
   are processed in the order received on the bus. Out-of-tree users may want to update any
   ``bosch,mram-cfg`` devicetree property overrides to allocate all FIFO elements to RX FIFO0.
+
+* The deprecated ``bus-speed`` and ``bus-speed-data`` CAN controller devicetree properties have
+  been removed. Use ``bitrate`` and ``bitrate-data`` instead.
 
 Counter
 =======
@@ -417,6 +487,21 @@ Ethernet
   :kconfig:option:`CONFIG_PTP_CLOCK_NATIVE` is enabled by default when the
   :dtcompatible:`zephyr,native-ptp-clock` compatible is present.
 
+* The native_sim TAP ethernet driver is now instantiated from devicetree using the
+  :dtcompatible:`zephyr,native-tap` compatible. Each interface is defined by a devicetree
+  node instead of the ``CONFIG_ETH_NATIVE_TAP_INTERFACE_COUNT`` Kconfig option, which has been
+  removed. Multiple interfaces are created by adding multiple nodes. The following Kconfig
+  options have been removed and replaced by devicetree properties:
+
+  * ``CONFIG_ETH_NATIVE_TAP_DRV_NAME`` -> the ``host-interface`` property.
+  * ``CONFIG_ETH_NATIVE_TAP_MAC_ADDR`` -> the ``local-mac-address`` property.
+  * ``CONFIG_ETH_NATIVE_TAP_RANDOM_MAC`` -> the ``zephyr,random-mac-address`` property.
+
+  The ``--eth-if``, ``--mac-addr``, ``--ipv4-addr``, ``--ipv4-gw`` and ``--ipv4-nm`` command
+  line options are still supported and apply to the first interface. Per-interface variants
+  named ``<node>_eth-if``, ``<node>_mac-addr``, etc. have been added for the remaining
+  interfaces.
+
 * ``port_phylink_change`` of the :c:struct:`dsa_api` is now optional.
   The DSA driver no longer needs to call :c:func:`net_eth_carrier_on` or
   :c:func:`net_eth_carrier_off` on PHY link change, this is now handled by the DSA core.
@@ -479,6 +564,10 @@ Ethernet
   (:kconfig:option:`CONFIG_ETH_DWC_ETHER_MULTICAST_FILTER`), so only multicast for the addresses
   the network stack has joined is received. Disable this option to receive all multicast, as
   before. (:github:`113235`)
+
+* Boards with Ethernet interfaces should now enable :kconfig:option:`CONFIG_ETH_DRIVER` by default,
+  instead of :kconfig:option:`CONFIG_NET_L2_ETHERNET`. The later is now enabled by default when the
+  former is. (:github:`117121`)
 
 Flash
 =====
@@ -915,6 +1004,16 @@ Sensor
   a mux controller node (for example :dtcompatible:`nxp,mcux-xbar`) and reference it from the
   decoder node's ``mux-states`` property instead. (:github:`112088`)
 
+* The ``pgain``, ``again``, ``ppulse-length`` and ``pled-boost`` properties of
+  :dtcompatible:`avago,apds9960` used to spell the 2-bit register fields they select in hex
+  (``0x00``/``0x01``/``0x10``/``0x11``) and now take the physical value they select instead: gain
+  multipliers for ``pgain`` (``1``/``2``/``4``/``8``) and ``again`` (``1``/``4``/``16``/``64``),
+  microseconds for ``ppulse-length`` (``4``/``8``/``16``/``32``) and percent for ``pled-boost``
+  (``100``/``150``/``200``/``300``). Most of the old values are rejected by the new enums, but
+  ``pgain = <0x01>`` and ``again = <0x01>`` still build and now select 1x rather than 2x and 4x,
+  so update them explicitly. Nodes that do not set these properties are unaffected
+  (:github:`116079`).
+
 Serial
 ======
 
@@ -938,6 +1037,12 @@ SPI
 * The ``fifo-enable`` property of :dtcompatible:`st,stm32h7-spi` has been removed.
   FIFO is now always used in polling and interrupt mode to enhance performance. A new property
   ``st,fifo-threshold`` can be used to configure the FIFO threshold (default = 1). (:github:`110265`)
+
+* The optional delay argument of :c:macro:`SPI_CONFIG_DT`, :c:macro:`SPI_CONFIG_DT_INST`,
+  :c:macro:`SPI_DT_SPEC_GET`, :c:macro:`SPI_DT_SPEC_INST_GET`, :c:macro:`SPI_DT_IODEV_DEFINE`,
+  :c:macro:`SPI_DT_INST_IODEV_DEFINE` and :c:macro:`SPI_CS_CONTROL_INIT` has been removed; drop
+  it from every invocation. Use the ``spi-cs-setup-delay-ns`` and ``spi-cs-hold-delay-ns``
+  devicetree properties instead (note that they are in nanoseconds rather than microseconds).
 
 Stepper
 =======
@@ -1392,6 +1497,23 @@ Bluetooth Host
   should review their synchronization and callback stack requirements. See
   pull request :github:`93033` for details.
 
+* ``CONFIG_BT_AUTO_PHY_UPDATE`` has been removed. Use the per-role ``BT_AUTO_PHY_CENTRAL``
+  and ``BT_AUTO_PHY_PERIPHERAL`` choices instead. ``=n`` does not translate to dropping the
+  option: the central choice defaults to :kconfig:option:`CONFIG_BT_AUTO_PHY_CENTRAL_2M`, so
+  both roles must be set to ``_NONE`` explicitly.
+
+* The deprecated ``CONFIG_BT_CONN_TX_MAX`` Kconfig option has been removed. It has been
+  deprecated since Zephyr 4.2, and the number of pending TX buffers with a callback always
+  follows :kconfig:option:`CONFIG_BT_BUF_ACL_TX_COUNT`.
+
+Bluetooth Mesh
+==============
+
+* The deprecated ``CONFIG_BT_MESH_BLOB_IO_FLASH_WITH_ERASE`` and
+  ``CONFIG_BT_MESH_BLOB_IO_FLASH_WITHOUT_ERASE`` Kconfig options have been removed, with no
+  replacement. They have been deprecated since Zephyr 4.3, where the BLOB IO Flash module
+  started querying the erase capability at runtime, and have had no effect since.
+
 Bluetooth Services
 ==================
 
@@ -1640,6 +1762,13 @@ Other subsystems
      ZTEST_BENCHMARK(suite, my_bench, 100, setup, teardown) { /* ... */ }
      ZTEST_BENCHMARK_TIMED(suite, my_bench, 1000, setup, teardown) { /* ... */ }
 
+* The ``CONFIG_ZTEST_SHUFFLE_SUITE_REPEAT_COUNT`` and ``CONFIG_ZTEST_SHUFFLE_TEST_REPEAT_COUNT``
+  Kconfig options, deprecated since Zephyr 4.0, have been removed. With
+  :kconfig:option:`CONFIG_ZTEST_SHUFFLE` alone, suites and tests now run once per execution, in a
+  shuffled order; to repeat them, enable :kconfig:option:`CONFIG_ZTEST_REPEAT` and set
+  :kconfig:option:`CONFIG_ZTEST_SUITE_REPEAT_COUNT` and
+  :kconfig:option:`CONFIG_ZTEST_TEST_REPEAT_COUNT`.
+
 * The CPU load metric module has been merged into the unified :ref:`cpu_load` module. The
   :kconfig:option:`CONFIG_CPU_LOAD_METRIC` option is deprecated; enable
   :kconfig:option:`CONFIG_CPU_LOAD` with the :kconfig:option:`CONFIG_CPU_LOAD_BACKEND_RUNTIME_STATS`
@@ -1647,6 +1776,18 @@ Other subsystems
   ``<zephyr/sys/cpu_load.h>``, and :c:func:`cpu_load_metric_get` is a deprecated wrapper around
   :c:func:`cpu_load_get_cpu`. Note that :c:func:`cpu_load_get_cpu` returns the load in per mille
   (0...1000) rather than percent; use :c:macro:`CPU_LOAD_PERMILLE_TO_PERCENT` to convert.
+
+* The internal ``__ASSERT_ON`` define has been removed. Out-of-tree code should invoke
+  ``__ASSERT()`` or ``__ASSERT_NO_MSG()`` directly, as these macros already compile out when
+  assertions are disabled.
+  Mark values used only by assertions with ``__maybe_unused`` or ``ARG_UNUSED()`` as appropriate.
+
+hawkBit
+=======
+
+* The legacy ``<zephyr/mgmt/hawkbit.h>`` header, deprecated since Zephyr 4.0, has been removed.
+  Include ``<zephyr/mgmt/hawkbit/hawkbit.h>``, ``<zephyr/mgmt/hawkbit/config.h>`` and
+  ``<zephyr/mgmt/hawkbit/autohandler.h>`` instead.
 
 Logging
 =======
@@ -1708,9 +1849,9 @@ lvgl
 ====
 
 * The ``zephyr,lvgl-pointer-input`` devicetree binding marks the ``swap-xy``, ``invert-x``, and
-  ``invert-y`` properties as **deprecated**. Users should instead add these properties to the
-  underlying touch input controller device node, where they are now the canonical location for
-  such transformations.
+  ``invert-y`` properties as **deprecated**. Users should instead add the corresponding
+  touchscreen properties ``swapped-x-y``, ``inverted-x``, and ``inverted-y`` to the underlying
+  touch input controller device node, where these transformations are now defined canonically.
 
 * :kconfig:option:`CONFIG_LV_Z_FULL_REFRESH` is now part of the ``LV_Z_RENDERING_MODE`` Kconfig
   choice, alongside :kconfig:option:`CONFIG_LV_Z_PARTIAL_REFRESH` (default) and
@@ -1736,6 +1877,20 @@ hal_nxp
 
 Mbed TLS
 ========
+
+* The following deprecated Kconfig options have been removed:
+
+  * ``CONFIG_MBEDTLS_MD`` -> :kconfig:option:`CONFIG_MBEDTLS_MD_C`
+  * ``CONFIG_MBEDTLS_LMS`` -> :kconfig:option:`CONFIG_MBEDTLS_LMS_C`
+  * ``CONFIG_MBEDTLS_TLS_VERSION_1_2`` -> :kconfig:option:`CONFIG_MBEDTLS_SSL_PROTO_TLS1_2`
+  * ``CONFIG_MBEDTLS_DTLS`` -> :kconfig:option:`CONFIG_MBEDTLS_SSL_PROTO_DTLS`
+  * ``CONFIG_MBEDTLS_TLS_VERSION_1_3`` -> :kconfig:option:`CONFIG_MBEDTLS_SSL_PROTO_TLS1_3`
+  * ``CONFIG_MBEDTLS_TLS_SESSION_TICKETS`` ->
+    :kconfig:option:`CONFIG_MBEDTLS_SSL_SESSION_TICKETS`
+  * ``CONFIG_MBEDTLS_CTR_DRBG_ENABLED`` -> :kconfig:option:`CONFIG_MBEDTLS_CTR_DRBG_C`
+  * ``CONFIG_MBEDTLS_HMAC_DRBG_ENABLED`` -> :kconfig:option:`CONFIG_MBEDTLS_HMAC_DRBG_C`
+
+  Unlike the removed options, the new ones do not enable their dependencies automatically.
 
 * :kconfig:option:`CONFIG_MBEDTLS_SSL_EARLY_DATA` is now an explicit opt-in and is no longer
   implicitly enabled by :kconfig:option:`CONFIG_MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ENABLED`.
@@ -1830,6 +1985,9 @@ Architectures
   after the stack pointers have been set up, and is skipped on resume from
   suspend-to-RAM.
 
+* The RISC-V specific ``CONFIG_EXTRA_EXCEPTION_INFO`` has been removed. Use
+  :kconfig:option:`CONFIG_EXCEPTION_DEBUG` instead. The option is unchanged on Arm and SPARC.
+
 Video
 =====
 
@@ -1837,3 +1995,10 @@ Video
   ``uint16_t *idx`` output parameter but instead returns a pointer to the imported
   :c:struct:`video_buffer`, or ``NULL`` on failure. This helps to make the index transparent
   to the application and also makes the buffer accessible from the application.
+
+Twister
+=======
+
+* Faults after tests have passed are now explicitly detected and fail the whole
+  testsuite, if a test produces a fault on purpose then the corresponding test
+  case has to be marked with ``ignore_faults: true`` (:github:`116359`).
