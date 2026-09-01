@@ -57,10 +57,20 @@ Build System
   now fails on one. Expand the pattern with ``file(GLOB ...)`` and pass the
   resulting file names instead.
 
+* The ``ZephyrUnittest`` CMake package, deprecated since Zephyr 3.1, has been removed and
+  ``west zephyr-export`` no longer registers it. Use
+  ``find_package(Zephyr COMPONENTS unittest)`` instead of ``find_package(ZephyrUnittest)``.
+
 * ``west spdx --init`` is deprecated and will be removed in Zephyr 5.0. A build with
   :kconfig:option:`CONFIG_BUILD_OUTPUT_META` now asks CMake for the file-based API object model
   that ``west spdx`` reads, so generating an SBOM no longer needs the build directory to be
   prepared beforehand: build as usual, then run ``west spdx``.
+
+* The CMake ``flash``, ``debug``, ``debugserver``, ``attach`` and ``rtt`` targets have been
+  removed. Use ``west flash``, ``west debug``, ``west debugserver``, ``west attach`` and
+  ``west rtt`` instead. The emulation ``run`` and ``debugserver`` targets are unaffected.
+
+* The ``WEST_DIR`` build system variable is no longer used.
 
 Kernel
 ******
@@ -477,6 +487,21 @@ Ethernet
   :kconfig:option:`CONFIG_PTP_CLOCK_NATIVE` is enabled by default when the
   :dtcompatible:`zephyr,native-ptp-clock` compatible is present.
 
+* The native_sim TAP ethernet driver is now instantiated from devicetree using the
+  :dtcompatible:`zephyr,native-tap` compatible. Each interface is defined by a devicetree
+  node instead of the ``CONFIG_ETH_NATIVE_TAP_INTERFACE_COUNT`` Kconfig option, which has been
+  removed. Multiple interfaces are created by adding multiple nodes. The following Kconfig
+  options have been removed and replaced by devicetree properties:
+
+  * ``CONFIG_ETH_NATIVE_TAP_DRV_NAME`` -> the ``host-interface`` property.
+  * ``CONFIG_ETH_NATIVE_TAP_MAC_ADDR`` -> the ``local-mac-address`` property.
+  * ``CONFIG_ETH_NATIVE_TAP_RANDOM_MAC`` -> the ``zephyr,random-mac-address`` property.
+
+  The ``--eth-if``, ``--mac-addr``, ``--ipv4-addr``, ``--ipv4-gw`` and ``--ipv4-nm`` command
+  line options are still supported and apply to the first interface. Per-interface variants
+  named ``<node>_eth-if``, ``<node>_mac-addr``, etc. have been added for the remaining
+  interfaces.
+
 * ``port_phylink_change`` of the :c:struct:`dsa_api` is now optional.
   The DSA driver no longer needs to call :c:func:`net_eth_carrier_on` or
   :c:func:`net_eth_carrier_off` on PHY link change, this is now handled by the DSA core.
@@ -539,6 +564,10 @@ Ethernet
   (:kconfig:option:`CONFIG_ETH_DWC_ETHER_MULTICAST_FILTER`), so only multicast for the addresses
   the network stack has joined is received. Disable this option to receive all multicast, as
   before. (:github:`113235`)
+
+* Boards with Ethernet interfaces should now enable :kconfig:option:`CONFIG_ETH_DRIVER` by default,
+  instead of :kconfig:option:`CONFIG_NET_L2_ETHERNET`. The later is now enabled by default when the
+  former is. (:github:`117121`)
 
 Flash
 =====
@@ -974,6 +1003,16 @@ Sensor
   :ref:`mux <mux_api>` subsystem. The ``xbar`` property has been removed; describe the routing with
   a mux controller node (for example :dtcompatible:`nxp,mcux-xbar`) and reference it from the
   decoder node's ``mux-states`` property instead. (:github:`112088`)
+
+* The ``pgain``, ``again``, ``ppulse-length`` and ``pled-boost`` properties of
+  :dtcompatible:`avago,apds9960` used to spell the 2-bit register fields they select in hex
+  (``0x00``/``0x01``/``0x10``/``0x11``) and now take the physical value they select instead: gain
+  multipliers for ``pgain`` (``1``/``2``/``4``/``8``) and ``again`` (``1``/``4``/``16``/``64``),
+  microseconds for ``ppulse-length`` (``4``/``8``/``16``/``32``) and percent for ``pled-boost``
+  (``100``/``150``/``200``/``300``). Most of the old values are rejected by the new enums, but
+  ``pgain = <0x01>`` and ``again = <0x01>`` still build and now select 1x rather than 2x and 4x,
+  so update them explicitly. Nodes that do not set these properties are unaffected
+  (:github:`116079`).
 
 Serial
 ======
@@ -1723,6 +1762,13 @@ Other subsystems
      ZTEST_BENCHMARK(suite, my_bench, 100, setup, teardown) { /* ... */ }
      ZTEST_BENCHMARK_TIMED(suite, my_bench, 1000, setup, teardown) { /* ... */ }
 
+* The ``CONFIG_ZTEST_SHUFFLE_SUITE_REPEAT_COUNT`` and ``CONFIG_ZTEST_SHUFFLE_TEST_REPEAT_COUNT``
+  Kconfig options, deprecated since Zephyr 4.0, have been removed. With
+  :kconfig:option:`CONFIG_ZTEST_SHUFFLE` alone, suites and tests now run once per execution, in a
+  shuffled order; to repeat them, enable :kconfig:option:`CONFIG_ZTEST_REPEAT` and set
+  :kconfig:option:`CONFIG_ZTEST_SUITE_REPEAT_COUNT` and
+  :kconfig:option:`CONFIG_ZTEST_TEST_REPEAT_COUNT`.
+
 * The CPU load metric module has been merged into the unified :ref:`cpu_load` module. The
   :kconfig:option:`CONFIG_CPU_LOAD_METRIC` option is deprecated; enable
   :kconfig:option:`CONFIG_CPU_LOAD` with the :kconfig:option:`CONFIG_CPU_LOAD_BACKEND_RUNTIME_STATS`
@@ -1730,6 +1776,18 @@ Other subsystems
   ``<zephyr/sys/cpu_load.h>``, and :c:func:`cpu_load_metric_get` is a deprecated wrapper around
   :c:func:`cpu_load_get_cpu`. Note that :c:func:`cpu_load_get_cpu` returns the load in per mille
   (0...1000) rather than percent; use :c:macro:`CPU_LOAD_PERMILLE_TO_PERCENT` to convert.
+
+* The internal ``__ASSERT_ON`` define has been removed. Out-of-tree code should invoke
+  ``__ASSERT()`` or ``__ASSERT_NO_MSG()`` directly, as these macros already compile out when
+  assertions are disabled.
+  Mark values used only by assertions with ``__maybe_unused`` or ``ARG_UNUSED()`` as appropriate.
+
+hawkBit
+=======
+
+* The legacy ``<zephyr/mgmt/hawkbit.h>`` header, deprecated since Zephyr 4.0, has been removed.
+  Include ``<zephyr/mgmt/hawkbit/hawkbit.h>``, ``<zephyr/mgmt/hawkbit/config.h>`` and
+  ``<zephyr/mgmt/hawkbit/autohandler.h>`` instead.
 
 Logging
 =======
@@ -1791,9 +1849,9 @@ lvgl
 ====
 
 * The ``zephyr,lvgl-pointer-input`` devicetree binding marks the ``swap-xy``, ``invert-x``, and
-  ``invert-y`` properties as **deprecated**. Users should instead add these properties to the
-  underlying touch input controller device node, where they are now the canonical location for
-  such transformations.
+  ``invert-y`` properties as **deprecated**. Users should instead add the corresponding
+  touchscreen properties ``swapped-x-y``, ``inverted-x``, and ``inverted-y`` to the underlying
+  touch input controller device node, where these transformations are now defined canonically.
 
 * :kconfig:option:`CONFIG_LV_Z_FULL_REFRESH` is now part of the ``LV_Z_RENDERING_MODE`` Kconfig
   choice, alongside :kconfig:option:`CONFIG_LV_Z_PARTIAL_REFRESH` (default) and
@@ -1937,3 +1995,10 @@ Video
   ``uint16_t *idx`` output parameter but instead returns a pointer to the imported
   :c:struct:`video_buffer`, or ``NULL`` on failure. This helps to make the index transparent
   to the application and also makes the buffer accessible from the application.
+
+Twister
+=======
+
+* Faults after tests have passed are now explicitly detected and fail the whole
+  testsuite, if a test produces a fault on purpose then the corresponding test
+  case has to be marked with ``ignore_faults: true`` (:github:`116359`).
