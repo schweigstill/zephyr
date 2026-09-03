@@ -719,6 +719,7 @@ static inline int zbus_async_listener_set_work_queue(const struct zbus_observer 
  * observers could not receive the notification.
  * @retval -EBUSY The channel is busy.
  * @retval -EAGAIN Waiting period timed out.
+ * @retval -ENOMEM There are no more buffers in the message buffer pool.
  * @retval -EFAULT A parameter is incorrect, the notification could not be sent to one or more
  * observer, or the function context is invalid (inside an ISR). The function only returns this
  * value when the @kconfig{CONFIG_ZBUS_ASSERT_MOCK} is enabled.
