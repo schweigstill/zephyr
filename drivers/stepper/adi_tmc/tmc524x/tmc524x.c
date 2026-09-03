@@ -423,7 +423,7 @@ static int tmc524x_init(const struct device *dev)
 		     "TMC524X spi-max-frequency must not exceed 10 MHz"); \
 	static struct tmc524x_data tmc524x_data_##inst; \
 	static const struct tmc524x_config tmc524x_config_##inst = { \
-		.spi = SPI_DT_SPEC_INST_GET(inst, SPI_OP_MODE_MASTER | SPI_WORD_SET(8) | \
+		.spi = SPI_DT_SPEC_INST_GET(inst, SPI_OP_MODE_CONTROLLER | SPI_WORD_SET(8) | \
 						     SPI_TRANSFER_MSB | SPI_MODE_CPOL | \
 						     SPI_MODE_CPHA), \
 		.sleep_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, sleep_gpios, {0}), \
