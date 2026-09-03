@@ -345,7 +345,10 @@ typedef void (*bt_ready_cb_t)(int err);
  * internal to the stack, never from an ISR; see
  * @rstref{Callback execution contexts <bluetooth_callback_contexts>}.
  *
- * @return Zero on success or (negative) error code otherwise.
+ * @return 0 on success, negative errno value on failure.
+ * @retval -EALREADY Bluetooth is already enabled, or being enabled.
+ * @retval -EAGAIN Bluetooth is being disabled; retry once bt_disable() has returned.
+ * @retval -ENODEV The HCI driver is not ready.
  */
 int bt_enable(bt_ready_cb_t cb);
 
@@ -370,10 +373,10 @@ int bt_enable(bt_ready_cb_t cb);
  *
  * Close and release HCI resources. Result is architecture dependent.
  *
- * @retval 0 Success.
- * @retval -EAGAIN bt_enable() with a ready callback has not completed yet;
- *                 retry after the ready callback fires.
- * @retval -EALREADY bt_disable() has already been called.
+ * @return 0 on success, negative errno value on failure.
+ * @retval -EALREADY Bluetooth is already disabled, or being disabled.
+ * @retval -EAGAIN Bluetooth is still being enabled, which with @kconfig{CONFIG_BT_SETTINGS}
+ *                 includes loading the Bluetooth settings; retry once bt_is_ready() returns true.
  */
 int bt_disable(void);
 
@@ -2703,6 +2706,7 @@ int bt_le_scan_start(const struct bt_le_scan_param *param, bt_le_scan_cb_t cb);
  *
  * @return Zero on success or error code otherwise, positive in case of
  *         protocol error or negative (POSIX) in case of stack internal error.
+ * @retval -EBUSY The scanner is being started or stopped in a different thread.
  */
 int bt_le_scan_stop(void);
 
