@@ -244,8 +244,10 @@ mmc_init:
 		LOG_ERR("Card error on CMD0");
 		return ret;
 	}
-	if (!mmc_card_init(card)) {
-		return 0;
+	ret = mmc_card_init(card);
+	if ((ret == 0) || (card->type == CARD_MMC)) {
+		/* Preserve the actual initialization failure for a known MMC. */
+		return ret;
 	}
 #endif /* CONFIG_MMC_STACK */
 	/* Unknown card type */
