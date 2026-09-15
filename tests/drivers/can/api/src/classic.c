@@ -409,25 +409,31 @@ ZTEST_USER(can_classic, test_classic_get_capabilities)
 }
 
 /**
- * @brief CAN state change callback.
+ * @brief CAN state change callback handler.
  */
-static void state_change_callback(const struct device *dev, enum can_state state,
-				  struct can_bus_err_cnt err_cnt, void *user_data)
+static void state_change_callback_handler(const struct device *dev,
+					  struct can_state_change_callback *callback,
+					  enum can_state state, struct can_bus_err_cnt err_cnt)
 {
 	ARG_UNUSED(dev);
+	ARG_UNUSED(callback);
 	ARG_UNUSED(state);
 	ARG_UNUSED(err_cnt);
-	ARG_UNUSED(user_data);
+
 }
 
+static struct can_state_change_callback state_change_callback;
+
 /**
- * @brief Test setting the CAN state change callback.
+ * @brief Test adding/removing a CAN state change callback.
  */
-ZTEST(can_classic, test_set_state_change_callback)
+ZTEST(can_classic, test_add_remove_state_change_callback)
 {
+	can_init_state_change_callback(&state_change_callback, state_change_callback_handler);
+
 	/* It is not possible to provoke a change of state, but test the API call */
-	can_set_state_change_callback(can_dev, state_change_callback, NULL);
-	can_set_state_change_callback(can_dev, NULL, NULL);
+	zassert_ok(can_add_state_change_callback(can_dev, &state_change_callback));
+	zassert_ok(can_remove_state_change_callback(can_dev, &state_change_callback));
 }
 
 /**
@@ -732,7 +738,6 @@ ZTEST_USER(can_classic, test_max_ext_filters)
 	add_remove_max_filters(true);
 }
 
-#if defined(CONFIG_USERSPACE) && defined(CONFIG_DYNAMIC_OBJECTS)
 /**
  * @brief Test that a dynamically allocated message queue is rejected from user mode.
  *
@@ -748,6 +753,8 @@ ZTEST_USER(can_classic, test_add_rx_filter_msgq_dynamic)
 	struct k_msgq *msgq;
 	int err;
 
+	Z_TEST_SKIP_IFNDEF(CONFIG_DYNAMIC_OBJECTS);
+
 	msgq = k_object_alloc(K_OBJ_MSGQ);
 	zassert_not_null(msgq, "failed to allocate message queue object");
 
@@ -759,7 +766,6 @@ ZTEST_USER(can_classic, test_add_rx_filter_msgq_dynamic)
 
 	zassert_unreachable("dynamically allocated message queue was accepted");
 }
-#endif /* CONFIG_USERSPACE && CONFIG_DYNAMIC_OBJECTS */
 
 /**
  * @brief Test that no message is received when nothing was sent.
