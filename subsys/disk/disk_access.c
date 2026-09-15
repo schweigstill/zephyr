@@ -54,7 +54,7 @@ struct disk_info *disk_access_get_di(const char *name)
 	return disk;
 }
 
-int disk_access_init(const char *pdrv)
+static int disk_access_init_unlocked(const char *pdrv)
 {
 	struct disk_info *disk = disk_access_get_di(pdrv);
 	int rc = -EINVAL;
@@ -77,7 +77,7 @@ int disk_access_init(const char *pdrv)
 	return rc;
 }
 
-int disk_access_status(const char *pdrv)
+static int disk_access_status_unlocked(const char *pdrv)
 {
 	struct disk_info *disk = disk_access_get_di(pdrv);
 	int rc = -EINVAL;
@@ -90,7 +90,7 @@ int disk_access_status(const char *pdrv)
 	return rc;
 }
 
-int disk_access_read(const char *pdrv, uint8_t *data_buf,
+static int disk_access_read_unlocked(const char *pdrv, uint8_t *data_buf,
 		     uint32_t start_sector, uint32_t num_sector)
 {
 	struct disk_info *disk = disk_access_get_di(pdrv);
@@ -104,7 +104,7 @@ int disk_access_read(const char *pdrv, uint8_t *data_buf,
 	return rc;
 }
 
-int disk_access_write(const char *pdrv, const uint8_t *data_buf,
+static int disk_access_write_unlocked(const char *pdrv, const uint8_t *data_buf,
 		      uint32_t start_sector, uint32_t num_sector)
 {
 	struct disk_info *disk = disk_access_get_di(pdrv);
@@ -118,7 +118,7 @@ int disk_access_write(const char *pdrv, const uint8_t *data_buf,
 	return rc;
 }
 
-int disk_access_erase(const char *pdrv, uint32_t start_sector, uint32_t num_sector,
+static int disk_access_erase_unlocked(const char *pdrv, uint32_t start_sector, uint32_t num_sector,
 		      enum disk_access_erase_type erase_type)
 {
 	struct disk_info *disk = disk_access_get_di(pdrv);
@@ -136,7 +136,8 @@ int disk_access_erase(const char *pdrv, uint32_t start_sector, uint32_t num_sect
 	/* Validate sector sizes, if underlying driver exposes a way to query it */
 	if (disk_access_ioctl(pdrv, DISK_IOCTL_GET_ERASE_BLOCK_SZ, &erase_sector_size) == 0) {
 		/* Alignment check on both start and range of erase request */
-		if ((start_sector % erase_sector_size) || (num_sector % erase_sector_size)) {
+		if (erase_sector_size == 0U || (start_sector % erase_sector_size) != 0U ||
+		    (num_sector % erase_sector_size) != 0U) {
 			return -EINVAL;
 		}
 	}
@@ -148,7 +149,7 @@ int disk_access_erase(const char *pdrv, uint32_t start_sector, uint32_t num_sect
 	return rc;
 }
 
-int disk_access_ioctl(const char *pdrv, uint8_t cmd, void *buf)
+static int disk_access_ioctl_unlocked(const char *pdrv, uint8_t cmd, void *buf)
 {
 	struct disk_info *disk = disk_access_get_di(pdrv);
 	int rc = -EINVAL;
@@ -209,7 +210,8 @@ int disk_access_register(struct disk_info *disk)
 		return -EINVAL;
 	}
 
-	/* Initialize reference count to zero */
+	/* Initialize before publishing the disk in the registration list. */
+	k_mutex_init(&disk->mutex);
 	disk->refcnt = 0U;
 
 	spinlock_key = k_spin_lock(&lock);
@@ -240,4 +242,137 @@ int disk_access_unregister(struct disk_info *disk)
 	k_spin_unlock(&lock, spinlock_key);
 	LOG_DBG("disk interface(%s) unregistered", disk->name);
 	return 0;
+}
+
+/* The mutex is recursive so the maintenance owner can use the normal API. */
+int disk_access_exclusive_begin(const char *pdrv)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+
+	if (disk == NULL) {
+		return -ENODEV;
+	}
+	if (k_mutex_lock(&disk->mutex, K_NO_WAIT) != 0) {
+		return -EBUSY;
+	}
+	if (disk->refcnt != 0U) {
+		k_mutex_unlock(&disk->mutex);
+		return -EBUSY;
+	}
+	return 0;
+}
+
+int disk_access_exclusive_end(const char *pdrv)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+
+	if (disk == NULL) {
+		return -ENODEV;
+	}
+	return k_mutex_unlock(&disk->mutex);
+}
+
+int disk_access_init(const char *pdrv)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+	int rc;
+
+	if (disk == NULL) {
+		return -EINVAL;
+	}
+	rc = k_mutex_lock(&disk->mutex, K_FOREVER);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = disk_access_init_unlocked(pdrv);
+	k_mutex_unlock(&disk->mutex);
+	return rc;
+}
+
+int disk_access_status(const char *pdrv)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+	int rc;
+
+	if (disk == NULL) {
+		return -EINVAL;
+	}
+	rc = k_mutex_lock(&disk->mutex, K_FOREVER);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = disk_access_status_unlocked(pdrv);
+	k_mutex_unlock(&disk->mutex);
+	return rc;
+}
+
+int disk_access_read(const char *pdrv, uint8_t *data_buf,
+		     uint32_t start_sector, uint32_t num_sector)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+	int rc;
+
+	if (disk == NULL) {
+		return -EINVAL;
+	}
+	rc = k_mutex_lock(&disk->mutex, K_FOREVER);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = disk_access_read_unlocked(pdrv, data_buf, start_sector, num_sector);
+	k_mutex_unlock(&disk->mutex);
+	return rc;
+}
+
+int disk_access_write(const char *pdrv, const uint8_t *data_buf,
+		      uint32_t start_sector, uint32_t num_sector)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+	int rc;
+
+	if (disk == NULL) {
+		return -EINVAL;
+	}
+	rc = k_mutex_lock(&disk->mutex, K_FOREVER);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = disk_access_write_unlocked(pdrv, data_buf, start_sector, num_sector);
+	k_mutex_unlock(&disk->mutex);
+	return rc;
+}
+
+int disk_access_erase(const char *pdrv, uint32_t start_sector, uint32_t num_sector,
+		      enum disk_access_erase_type erase_type)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+	int rc;
+
+	if (disk == NULL) {
+		return -EINVAL;
+	}
+	rc = k_mutex_lock(&disk->mutex, K_FOREVER);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = disk_access_erase_unlocked(pdrv, start_sector, num_sector, erase_type);
+	k_mutex_unlock(&disk->mutex);
+	return rc;
+}
+
+int disk_access_ioctl(const char *pdrv, uint8_t cmd, void *buf)
+{
+	struct disk_info *disk = disk_access_get_di(pdrv);
+	int rc;
+
+	if (disk == NULL) {
+		return -EINVAL;
+	}
+	rc = k_mutex_lock(&disk->mutex, K_FOREVER);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = disk_access_ioctl_unlocked(pdrv, cmd, buf);
+	k_mutex_unlock(&disk->mutex);
+	return rc;
 }

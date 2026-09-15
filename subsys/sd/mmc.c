@@ -5,6 +5,7 @@
  */
 
 #include <zephyr/drivers/sdhc.h>
+#include <zephyr/drivers/disk.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sd/mmc.h>
@@ -68,9 +69,131 @@ inline int mmc_read_blocks(struct sd_card *card, uint8_t *rbuf, uint32_t start_b
 	return card_read_blocks(card, rbuf, start_block, num_blocks);
 }
 
-inline int mmc_ioctl(struct sd_card *card, uint8_t cmd, void *buf)
+/* R1 is used deliberately: poll CMD13 for busy completion, avoiding host R1b
+ * busy-timer limits for long erase operations. Never retry destructive commands.
+ */
+static int mmc_command(struct sd_card *card, uint32_t opcode, uint32_t arg)
 {
-	return card_ioctl(card, cmd, buf);
+	struct sdhc_command cmd = {
+		.opcode = opcode,
+		.arg = arg,
+		.response_type = SD_RSP_TYPE_R1,
+		.timeout_ms = CONFIG_SD_CMD_TIMEOUT,
+	};
+	int ret = sdhc_request(card->sdhc, &cmd, NULL);
+
+	if (ret != 0) {
+		return ret;
+	}
+	if ((cmd.response[0] & (SD_R1_ERR_FLAGS | SD_R1_CARD_LOCKED | BIT(7))) != 0U) {
+		LOG_ERR("MMC CMD%u status error: %08x", opcode, cmd.response[0]);
+		return -EIO;
+	}
+	return 0;
+}
+
+static int mmc_wait_complete(struct sd_card *card, uint32_t timeout_ms)
+{
+	int64_t deadline = k_uptime_get() + timeout_ms;
+
+	do {
+		struct sdhc_command cmd = {
+			.opcode = SD_SEND_STATUS,
+			.arg = (uint32_t)card->relative_addr << 16U,
+			.response_type = SD_RSP_TYPE_R1,
+			.timeout_ms = CONFIG_SD_CMD_TIMEOUT,
+		};
+		int ret = sdhc_request(card->sdhc, &cmd, NULL);
+
+		if (ret != 0) {
+			return ret;
+		}
+		if ((cmd.response[0] & (SD_R1_ERR_FLAGS | SD_R1_CARD_LOCKED | BIT(7))) != 0U) {
+			LOG_ERR("MMC completion status error: %08x", cmd.response[0]);
+			return -EIO;
+		}
+		if ((cmd.response[0] & SD_R1_RDY_DATA) != 0U &&
+		    SD_R1_CURRENT_STATE(cmd.response[0]) == SDMMC_R1_TRANSFER) {
+			return 0;
+		}
+		k_msleep(1);
+	} while (k_uptime_get() < deadline);
+	return -ETIMEDOUT;
+}
+
+static int mmc_flush_cache(struct sd_card *card)
+{
+	int ret = 0;
+
+	if (card->mmc_cache_enabled) {
+		/* EXT_CSD[32] FLUSH_CACHE = 1, WRITE_BYTE access. */
+		ret = mmc_command(card, SD_SWITCH, (3U << 24) | (32U << 16) | (1U << 8));
+	}
+	if (ret == 0) {
+		ret = mmc_wait_complete(card, CONFIG_SD_DATA_TIMEOUT);
+	}
+	return ret;
+}
+
+int mmc_ioctl(struct sd_card *card, uint8_t cmd, void *buf)
+{
+	int ret;
+
+	if (cmd == DISK_IOCTL_GET_ERASE_BLOCK_SZ) {
+		if (buf == NULL) {
+			return -EINVAL;
+		}
+		if (card->mmc_erase_group_sectors == 0U) {
+			return -ENOTSUP;
+		}
+		*(uint32_t *)buf = card->mmc_erase_group_sectors;
+		return 0;
+	}
+	if (cmd != DISK_IOCTL_CTRL_SYNC) {
+		return card_ioctl(card, cmd, buf);
+	}
+	if (k_mutex_lock(&card->lock, K_MSEC(CONFIG_SD_DATA_TIMEOUT)) != 0) {
+		return -EBUSY;
+	}
+	ret = mmc_flush_cache(card);
+	k_mutex_unlock(&card->lock);
+	return ret;
+}
+
+int mmc_erase_blocks(struct sd_card *card, uint32_t start_block, uint32_t num_blocks)
+{
+	uint32_t group = card->mmc_erase_group_sectors;
+	int ret;
+
+	if (card->type != CARD_MMC || group == 0U ||
+	    (card->flags & SD_HIGH_CAPACITY_FLAG) == 0U) {
+		return -ENOTSUP;
+	}
+	if (num_blocks == 0U || start_block >= card->block_count ||
+	    num_blocks > card->block_count - start_block ||
+	    start_block % group != 0U || num_blocks % group != 0U) {
+		return -EINVAL;
+	}
+	if (k_mutex_lock(&card->lock, K_MSEC(CONFIG_SD_DATA_TIMEOUT)) != 0) {
+		return -EBUSY;
+	}
+	ret = mmc_flush_cache(card);
+	while (ret == 0 && num_blocks > 0U) {
+		ret = mmc_command(card, MMC_ERASE_GROUP_START, start_block);
+		if (ret == 0) {
+			ret = mmc_command(card, MMC_ERASE_GROUP_END, start_block + group - 1U);
+		}
+		if (ret == 0) {
+			ret = mmc_command(card, SD_ERASE_BLOCK_OPERATION, 0U);
+		}
+		if (ret == 0) {
+			ret = mmc_wait_complete(card, card->mmc_erase_timeout_ms);
+		}
+		start_block += group;
+		num_blocks -= group;
+	}
+	k_mutex_unlock(&card->lock);
+	return ret;
 }
 
 /* Sends CMD1 */
@@ -183,6 +306,35 @@ int mmc_card_init(struct sd_card *card)
 	ret = mmc_read_ext_csd(card, &card_ext_csd);
 	if (ret) {
 		return ret;
+	}
+
+	/* Only the addressable user area is exposed as this disk. */
+	if ((card->card_buffer[179] & 7U) != 0U) {
+		return -ENOTSUP;
+	}
+	card->mmc_erase_group_sectors = 0U;
+	card->mmc_erase_timeout_ms = 0U;
+	card->mmc_cache_enabled = false;
+	if (card_ext_csd.rev >= MMC_4_3 && card->card_buffer[224] != 0U &&
+	    card->card_buffer[223] != 0U && (card->flags & SD_HIGH_CAPACITY_FLAG) != 0U) {
+		uint32_t group = (uint32_t)card->card_buffer[224] * 1024U;
+		uint32_t timeout = (uint32_t)card->card_buffer[223] * 300U;
+
+		if ((card->card_buffer[175] & 1U) == 0U) {
+			/* EXT_CSD ERASE_GROUP_DEF: select HC_ERASE_GRP_SIZE. */
+			ret = mmc_command(card, SD_SWITCH, (3U << 24) | (175U << 16) | (1U << 8));
+			if (ret == 0) {
+				ret = mmc_wait_complete(card, CONFIG_SD_DATA_TIMEOUT);
+			}
+			if (ret != 0) {
+				return ret;
+			}
+		}
+		/* Do not erase outside the user area or round its tail away. */
+		if (card->block_count % group == 0U) {
+			card->mmc_erase_group_sectors = group;
+			card->mmc_erase_timeout_ms = MAX(timeout, 1000U);
+		}
 	}
 
 	/* Set timing to fastest supported */
@@ -697,23 +849,18 @@ static inline void mmc_decode_ext_csd(struct mmc_ext_csd *ext, uint8_t *raw)
 
 static int mmc_set_cache(struct sd_card *card, struct mmc_ext_csd *card_ext_csd)
 {
-	int ret = 0;
-	struct sdhc_command cmd = {0};
+	int ret;
 
-	/* If there is no cache, don't use cache */
-	if (card_ext_csd->cache_size == 0) {
+	if (card_ext_csd->cache_size == 0U) {
 		return 0;
 	}
-	/* CMD6 to write to EXT CSD to turn on cache */
-	cmd.opcode = SD_SWITCH;
-	cmd.arg = MMC_SWITCH_CACHE_ON_ARG;
-	cmd.response_type = SD_RSP_TYPE_R1b;
-	cmd.timeout_ms = CONFIG_SD_CMD_TIMEOUT;
-	ret = sdhc_request(card->sdhc, &cmd, NULL);
-	if (ret) {
-		LOG_DBG("Error turning on card cache: %d", ret);
+	ret = mmc_command(card, SD_SWITCH, MMC_SWITCH_CACHE_ON_ARG);
+	if (ret != 0) {
 		return ret;
 	}
-	ret = sdmmc_wait_ready(card);
+	ret = mmc_wait_complete(card, CONFIG_SD_DATA_TIMEOUT);
+	if (ret == 0) {
+		card->mmc_cache_enabled = true;
+	}
 	return ret;
 }

@@ -626,6 +626,27 @@ int fs_unmount(struct fs_mount_t *mp);
 int fs_readmount(int *index, const char **name);
 
 /**
+ * @brief Reserve the unmounted VFS for raw filesystem maintenance.
+ *
+ * Prevent concurrent mounts while changing partition tables or formatting
+ * through a native filesystem API. Acquire before reserving a disk. Do not
+ * call VFS operations from the owning thread until fs_maintenance_end().
+ *
+ * @retval 0 Reservation acquired by the calling thread.
+ * @retval -EBUSY A filesystem is mounted or a VFS operation holds the lock.
+ */
+int fs_maintenance_begin(void);
+
+/**
+ * @brief Release the VFS maintenance reservation from its owning thread.
+ * @retval 0 Reservation released.
+ * @retval -EPERM Calling thread does not own the reservation.
+ * @retval -EINVAL Mutex is not locked.
+ */
+int fs_maintenance_end(void);
+
+
+/**
  * @brief File or directory status
  *
  * Checks the status of a file or directory specified by the @p path.

@@ -71,6 +71,9 @@ struct sd_card {
 	unsigned int num_io: 3; /*!< I/O function count. 0 for SD cards */
 	uint16_t relative_addr; /*!< Card relative address */
 	uint32_t block_count; /*!< Number of blocks in SD card */
+	uint32_t mmc_erase_group_sectors; /*!< MMC high-capacity erase group, or zero */
+	uint32_t mmc_erase_timeout_ms; /*!< MMC timeout per erase group */
+	bool mmc_cache_enabled; /*!< MMC cache requires explicit FLUSH_CACHE */
 	uint16_t block_size; /*!< SD block size */
 	uint8_t sd_version; /*!< SD specification version */
 	uint8_t card_speed; /*!< Card timing mode */

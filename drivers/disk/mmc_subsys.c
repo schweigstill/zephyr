@@ -77,6 +77,13 @@ static int disk_mmc_access_write(struct disk_info *disk, const uint8_t *buf,
 	return mmc_write_blocks(&data->card, buf, sector, count);
 }
 
+static int disk_mmc_access_erase(struct disk_info *disk, uint32_t sector, uint32_t count)
+{
+	struct mmc_data *data = disk->dev->data;
+
+	return mmc_erase_blocks(&data->card, sector, count);
+}
+
 static int disk_mmc_access_ioctl(struct disk_info *disk, uint8_t cmd, void *buf)
 {
 	const struct device *dev = disk->dev;
@@ -85,13 +92,18 @@ static int disk_mmc_access_ioctl(struct disk_info *disk, uint8_t cmd, void *buf)
 	switch (cmd) {
 	case DISK_IOCTL_CTRL_INIT:
 		return disk_mmc_access_init(disk);
-	case DISK_IOCTL_CTRL_DEINIT:
-		mmc_ioctl(&data->card, DISK_IOCTL_CTRL_SYNC, NULL);
+	case DISK_IOCTL_CTRL_DEINIT: {
+		int ret = mmc_ioctl(&data->card, DISK_IOCTL_CTRL_SYNC, NULL);
+
+		if (ret != 0) {
+			return ret;
+		}
 		/* sd_init() will toggle power to MMC, so we can just mark
 		 * disk as uninitialized
 		 */
 		data->status = SD_UNINIT;
 		return 0;
+	}
 	default:
 		return mmc_ioctl(&data->card, cmd, buf);
 	}
@@ -104,6 +116,7 @@ static const struct disk_operations mmc_disk_ops = {
 	.status = disk_mmc_access_status,
 	.read = disk_mmc_access_read,
 	.write = disk_mmc_access_write,
+	.erase = disk_mmc_access_erase,
 	.ioctl = disk_mmc_access_ioctl,
 };
 

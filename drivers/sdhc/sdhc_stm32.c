@@ -1668,6 +1668,8 @@ static int sdhc_stm32_request(const struct device *dev, struct sdhc_command *cmd
 	case SDIO_SEND_OP_COND:
 	case SD_ERASE_BLOCK_START:
 	case SD_ERASE_BLOCK_END:
+	case MMC_ERASE_GROUP_START:
+	case MMC_ERASE_GROUP_END:
 	case SD_ERASE_BLOCK_OPERATION:
 	case MMC_SEND_OP_COND:
 		res = sdhc_stm32_send_cmd(dev_data, instance, cmd);
