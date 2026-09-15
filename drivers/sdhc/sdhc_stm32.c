@@ -266,6 +266,11 @@ static int sdhc_stm32_sd_init(const struct device *dev)
 		return -EIO;
 	}
 
+	/* R1b busy detection uses DTIMER even before the first data transfer.
+	 * Its reset value (zero) times out after two clocks and leaves the
+	 * DPSM waiting for an abort, blocking subsequent data configuration.
+	 */
+	instance->DTIMER = SDMMC_DATATIMEOUT;
 	SDMMC_PowerState_ON(instance);
 
 	if (config->clk_div != 0) {
@@ -430,11 +435,12 @@ static int sdhc_stm32_send_cmd(struct sdhc_stm32_data *dev_data, SDMMC_TypeDef *
 
 	/*
 	 * Wait for response flags and CMDACT cleared.
-	 * For R1b, include BUSYD0END to detect end of DAT0 busy signaling.
+	 * Like STM32's SDMMC_GetCmdResp1(), accept BUSYD0END for both R1
+	 * and R1b: the controller uses the same short-response mode for both.
 	 */
 	uint32_t wait_flags = SDMMC_FLAG_CMDREND | SDMMC_FLAG_CTIMEOUT | SDMMC_FLAG_CCRCFAIL;
 
-	if (native_rsp_type == SD_RSP_TYPE_R1b) {
+	if ((native_rsp_type == SD_RSP_TYPE_R1) || (native_rsp_type == SD_RSP_TYPE_R1b)) {
 		wait_flags |= SDMMC_FLAG_BUSYD0END;
 	}
 
@@ -442,6 +448,17 @@ static int sdhc_stm32_send_cmd(struct sdhc_stm32_data *dev_data, SDMMC_TypeDef *
 		       cmd->timeout_ms * USEC_PER_MSEC, k_yield());
 
 	if (!ret || (sta & SDMMC_FLAG_CTIMEOUT)) {
+		/* Preserve the failing state before clearing the sticky status flags.
+		 * A missing SD SEND_IF_COND response is expected for MMC cards.
+		 */
+		if ((cmd->opcode != SD_SEND_IF_COND) || (native_rsp_type != SD_RSP_TYPE_R7)) {
+			LOG_ERR("CMD%u response timeout: STA=%08x CMD=%08x ARG=%08x",
+				cmd->opcode, sta, instance->CMD, instance->ARG);
+			LOG_ERR("RESPCMD=%08x RESP1=%08x CLKCR=%08x",
+				instance->RESPCMD, instance->RESP1, instance->CLKCR);
+			LOG_ERR("DCTRL=%08x DLEN=%08x DCOUNT=%08x",
+				instance->DCTRL, instance->DLEN, instance->DCOUNT);
+		}
 		__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_CMD_FLAGS);
 		dev_data->error_code = SDMMC_ERROR_CMD_RSP_TIMEOUT;
 		return -ETIMEDOUT;
@@ -456,6 +473,20 @@ static int sdhc_stm32_send_cmd(struct sdhc_stm32_data *dev_data, SDMMC_TypeDef *
 		if (native_rsp_type != SD_RSP_TYPE_R3 && native_rsp_type != SD_RSP_TYPE_R4) {
 			__SDMMC_CLEAR_FLAG(instance, SDMMC_FLAG_CCRCFAIL);
 			return -EILSEQ;
+		}
+	}
+
+	if (native_rsp_type == SD_RSP_TYPE_R1b) {
+		/* A response alone does not complete an R1b command. */
+		ret = WAIT_FOR(((sta = instance->STA) &
+			       (SDMMC_FLAG_BUSYD0 | SDMMC_FLAG_DPSMACT)) == 0U,
+			       cmd->timeout_ms * USEC_PER_MSEC, k_yield());
+		if (!ret || ((sta & SDMMC_FLAG_DTIMEOUT) != 0U)) {
+			LOG_ERR("CMD%u busy timeout: STA=%08x RESP1=%08x DTIMER=%08x",
+				cmd->opcode, sta, instance->RESP1, instance->DTIMER);
+			__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_FLAGS);
+			dev_data->error_code = SDMMC_ERROR_DATA_TIMEOUT;
+			return -ETIMEDOUT;
 		}
 	}
 
@@ -1020,6 +1051,13 @@ static int sdhc_stm32_mmc_read_ext_csd(struct sdhc_stm32_data *dev_data, SDMMC_T
 		return -EINVAL;
 	}
 
+	if ((instance->STA & SDMMC_FLAG_DPSMACT) != 0U) {
+		LOG_ERR("EXT_CSD: data path active before configuration: STA=%08x DTIMER=%08x",
+			instance->STA, instance->DTIMER);
+		dev_data->error_code = SDMMC_ERROR_BUSY;
+		return -EBUSY;
+	}
+
 	dev_data->error_code = SDMMC_ERROR_NONE;
 
 	/* Initialize data control register */
@@ -1040,6 +1078,7 @@ static int sdhc_stm32_mmc_read_ext_csd(struct sdhc_stm32_data *dev_data, SDMMC_T
 		res = sdhc_stm32_set_response(dev_data, instance, cmd);
 	}
 	if (res != 0) {
+		__SDMMC_CMDTRANS_DISABLE(instance);
 		__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_FLAGS);
 		__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_DATA_FLAGS);
 		return res;
@@ -1061,13 +1100,13 @@ static int sdhc_stm32_mmc_read_ext_csd(struct sdhc_stm32_data *dev_data, SDMMC_T
 			k_yield();
 	       }));
 
+	__SDMMC_CMDTRANS_DISABLE(instance);
+
 	if (res == 0) {
 		__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_FLAGS);
 		dev_data->error_code |= SDMMC_ERROR_TIMEOUT;
 		return -ETIMEDOUT;
 	}
-
-	__SDMMC_CMDTRANS_DISABLE(instance);
 
 	/* Check for data transfer errors */
 	errorstate = __SDMMC_GET_FLAG(instance, SDMMC_DATA_ERROR_FLAGS);
@@ -1694,6 +1733,16 @@ static int sdhc_stm32_set_io(const struct device *dev, struct sdhc_io *ios)
 	/* Prevent the clocks to be stopped during the request */
 	pm_policy_state_lock_get(PM_STATE_SUSPEND_TO_IDLE, PM_ALL_SUBSTATES);
 	k_mutex_lock(&data->bus_mutex, K_FOREVER);
+
+	/* CLKCR writes are ignored while either state machine is active. */
+	if ((((ios->clock != 0U) && (host_io->clock != ios->clock)) ||
+	     ((ios->bus_width != 0U) && (host_io->bus_width != ios->bus_width))) &&
+	    ((instance->STA & (SDMMC_FLAG_CMDACT | SDMMC_FLAG_DPSMACT)) != 0U)) {
+		LOG_ERR("Cannot change SDMMC clock/bus width: STA=%08x CLKCR=%08x",
+			instance->STA, instance->CLKCR);
+		res = -EBUSY;
+		goto end;
+	}
 
 	if ((ios->clock != 0) && (host_io->clock != ios->clock)) {
 		if ((ios->clock > props->f_max) || (ios->clock < props->f_min)) {

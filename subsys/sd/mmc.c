@@ -402,9 +402,13 @@ static int mmc_set_bus_width(struct sd_card *card)
 	cmd.response_type = SD_RSP_TYPE_R1b;
 	cmd.timeout_ms = CONFIG_SD_CMD_TIMEOUT;
 	ret = sdhc_request(card->sdhc, &cmd, NULL);
-	sdmmc_wait_ready(card);
-	if (ret) {
+	if (ret != 0) {
 		LOG_ERR("Setting card data bus width failed: %d", ret);
+		return ret;
+	}
+	ret = sdmmc_wait_ready(card);
+	if (ret != 0) {
+		LOG_ERR("Card not ready after setting data bus width: %d", ret);
 		return ret;
 	}
 
