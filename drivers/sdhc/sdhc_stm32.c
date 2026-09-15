@@ -366,13 +366,42 @@ static uint32_t sdhc_stm32_convert_block_size(struct sdhc_stm32_data *dev_data)
 	return LOG2(block_size) << SDMMC_DCTRL_DBLOCKSIZE_Pos;
 }
 
-static int sdhc_stm32_handle_data_error(SDMMC_TypeDef *instance, uint32_t errorcode,
+static uint32_t sdhc_stm32_data_error_code(uint32_t status)
+{
+	uint32_t error = SDMMC_ERROR_NONE;
+
+	if ((status & SDMMC_FLAG_DTIMEOUT) != 0U) {
+		error |= SDMMC_ERROR_DATA_TIMEOUT;
+	}
+	if ((status & SDMMC_FLAG_DCRCFAIL) != 0U) {
+		error |= SDMMC_ERROR_DATA_CRC_FAIL;
+	}
+	if ((status & SDMMC_FLAG_RXOVERR) != 0U) {
+		error |= SDMMC_ERROR_RX_OVERRUN;
+	}
+	if ((status & SDMMC_FLAG_TXUNDERR) != 0U) {
+		error |= SDMMC_ERROR_TX_UNDERRUN;
+	}
+	return error;
+}
+
+static int sdhc_stm32_handle_data_error(SDMMC_TypeDef *instance, uint32_t status,
 					struct sdhc_stm32_data *data)
 {
+	uint32_t errorcode = sdhc_stm32_data_error_code(status);
+
+	/* Capture the fault before clearing flags or resetting the polling FIFO. */
+	LOG_ERR("Data error: flags=%08x STA=%08x CMD=%08x ARG=%08x",
+		status, instance->STA, instance->CMD, instance->ARG);
+	LOG_ERR("CLKCR=%08x DTIMER=%08x DCOUNT=%08x",
+		instance->CLKCR, instance->DTIMER, instance->DCOUNT);
+	instance->DCTRL |= SDMMC_DCTRL_FIFORST;
 	__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_FLAGS);
 	data->error_code |= errorcode;
-	if (errorcode == SDMMC_ERROR_DATA_TIMEOUT) {
+	if ((errorcode & SDMMC_ERROR_DATA_TIMEOUT) != 0U) {
 		return -ETIMEDOUT;
+	} else if ((errorcode & SDMMC_ERROR_DATA_CRC_FAIL) != 0U) {
+		return -EILSEQ;
 	} else {
 		return -EIO;
 	}
@@ -471,7 +500,10 @@ static int sdhc_stm32_send_cmd(struct sdhc_stm32_data *dev_data, SDMMC_TypeDef *
 		 * for these response types.
 		 */
 		if (native_rsp_type != SD_RSP_TYPE_R3 && native_rsp_type != SD_RSP_TYPE_R4) {
-			__SDMMC_CLEAR_FLAG(instance, SDMMC_FLAG_CCRCFAIL);
+			LOG_ERR("CMD%u response CRC failure: STA=%08x ARG=%08x RESPCMD=%08x",
+				cmd->opcode, sta, cmd->arg, instance->RESPCMD);
+			dev_data->error_code = SDMMC_ERROR_CMD_CRC_FAIL;
+			__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_CMD_FLAGS);
 			return -EILSEQ;
 		}
 	}
@@ -798,8 +830,9 @@ static int sdhc_stm32_rw_blocks_poll(struct sdhc_stm32_data *dev_data, struct sd
 		res = sdhc_stm32_set_response(dev_data, instance, cmd);
 	}
 	if (res != 0) {
+		__SDMMC_CMDTRANS_DISABLE(instance);
 		__SDMMC_CLEAR_FLAG(instance, SDMMC_STATIC_FLAGS);
-		return -EIO;
+		return res;
 	}
 
 	/* Poll on SDMMC flags */
@@ -815,22 +848,25 @@ static int sdhc_stm32_rw_blocks_poll(struct sdhc_stm32_data *dev_data, struct sd
 		res = sdhc_stm32_poll_read_transfer(instance, &tempbuff, &dataremaining, timeout,
 						    dev_data);
 	}
+	__SDMMC_CMDTRANS_DISABLE(instance);
 	if (res != 0) {
 		return res;
 	}
 
-	__SDMMC_CMDTRANS_DISABLE(instance);
+	/* Preserve the data failure before a STOP can change the controller state.
+	 * __SDMMC_GET_FLAG() returns bool, not the individual error bits.
+	 */
+	errorstate = instance->STA & SDMMC_DATA_ERROR_FLAGS;
+	if (errorstate != 0U) {
+		LOG_ERR("CMD%u data failure: arg=%08x blocks=%u remaining=%u",
+			cmd->opcode, cmd->arg, number_of_blocks, dataremaining);
+		return sdhc_stm32_handle_data_error(instance, errorstate, dev_data);
+	}
 
 	/* Send stop transmission command in case of multiblock transfer */
 	res = sdhc_stm32_send_stop_cmd(instance, number_of_blocks, dev_data);
 	if (res != 0) {
 		return res;
-	}
-
-	/* Check for data transfer errors */
-	errorstate = __SDMMC_GET_FLAG(instance, SDMMC_DATA_ERROR_FLAGS);
-	if (errorstate != 0U) {
-		return sdhc_stm32_handle_data_error(instance, errorstate, dev_data);
 	}
 
 	/* Clear all the static flags */
@@ -1109,7 +1145,7 @@ static int sdhc_stm32_mmc_read_ext_csd(struct sdhc_stm32_data *dev_data, SDMMC_T
 	}
 
 	/* Check for data transfer errors */
-	errorstate = __SDMMC_GET_FLAG(instance, SDMMC_DATA_ERROR_FLAGS);
+	errorstate = instance->STA & SDMMC_DATA_ERROR_FLAGS;
 	if (errorstate != 0U) {
 		return sdhc_stm32_handle_data_error(instance, errorstate, dev_data);
 	}
@@ -1192,7 +1228,7 @@ static int sdhc_stm32_find_scr(struct sdhc_command *cmd, SDMMC_TypeDef *instance
 
 void sdhc_stm32_irq_handler(SDMMC_TypeDef *instance, struct sdhc_stm32_data *dev_data)
 {
-	uint32_t errorcode = __SDMMC_GET_FLAG(instance, SDMMC_DATA_ERROR_FLAGS);
+	uint32_t errorcode = sdhc_stm32_data_error_code(instance->STA);
 	bool data_end = __SDMMC_GET_FLAG(instance, SDMMC_FLAG_DATAEND) != 0U;
 
 	if ((errorcode == 0U) && !data_end) {
@@ -1352,7 +1388,7 @@ static int sdhc_stm32_sdio_rw_extended_poll(struct sdhc_command *cmd, SDMMC_Type
 	__SDMMC_CMDTRANS_DISABLE(instance);
 
 	/* Check for data transfer errors */
-	errorstate = __SDMMC_GET_FLAG(instance, SDMMC_DATA_ERROR_FLAGS);
+	errorstate = instance->STA & SDMMC_DATA_ERROR_FLAGS;
 	if (errorstate != 0U) {
 		return sdhc_stm32_handle_data_error(instance, errorstate, dev_data);
 	}
