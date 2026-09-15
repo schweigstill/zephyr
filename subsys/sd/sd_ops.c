@@ -582,7 +582,7 @@ int card_read_blocks(struct sd_card *card, uint8_t *rbuf, uint32_t start_block, 
 			/* Read from disk to card buffer */
 			ret = card_read(card, card->card_buffer, sector + start_block, rlen);
 			if (ret) {
-				LOG_ERR("Write failed");
+				LOG_ERR("Read failed");
 				k_mutex_unlock(&card->lock);
 				return ret;
 			}
