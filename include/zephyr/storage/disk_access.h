@@ -133,6 +133,32 @@ int disk_access_erase(const char *pdrv, uint32_t start_sector, uint32_t num_sect
  */
 int disk_access_ioctl(const char *pdrv, uint8_t cmd, void *buff);
 
+/**
+ * @brief Reserve an unmounted disk for exclusive maintenance.
+ *
+ * Fail if the disk has outstanding initialization references. The calling thread
+ * may then initialize and use the normal disk API while other threads wait.
+ * Do not call VFS operations while reserved: a VFS caller can hold its lock while
+ * waiting for this disk. Balance all initialization references before ending.
+ * Registration/unregistration must not run concurrently with disk access.
+ *
+ * @param pdrv Registered disk name.
+ * @retval 0 Disk reserved by the calling thread.
+ * @retval -ENODEV Disk not registered.
+ * @retval -EBUSY Disk in use.
+ */
+int disk_access_exclusive_begin(const char *pdrv);
+
+/**
+ * @brief Release the disk reservation from its owning thread.
+ * @param pdrv Registered disk name passed to disk_access_exclusive_begin().
+ * @retval 0 Reservation released.
+ * @retval -ENODEV Disk not registered.
+ * @retval -EPERM Calling thread does not own the reservation.
+ * @retval -EINVAL Mutex is not locked.
+ */
+int disk_access_exclusive_end(const char *pdrv);
+
 #ifdef __cplusplus
 }
 #endif

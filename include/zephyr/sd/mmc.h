@@ -55,6 +55,26 @@ int mmc_read_blocks(struct sd_card *card, uint8_t *rbuf,
 	uint32_t start_block, uint32_t num_blocks);
 
 /**
+ * @brief Erase complete MMC erase groups and release them to the device.
+ *
+ * Uses CMD35/CMD36/CMD38 (normal ERASE), waits for completion and checks status.
+ * This is logical erasure to the device's erased value, not a sanitization of
+ * inaccessible NAND copies, boot partitions or RPMB.
+ *
+ * @param card Initialized MMC card in the user data partition.
+ * @param start_block First 512-byte sector, aligned to an erase group.
+ * @param num_blocks Nonzero sector count, aligned to an erase group.
+ * @retval 0 All requested groups erased.
+ * @retval -EINVAL Range is empty, unaligned or outside the device.
+ * @retval -ENOTSUP High-capacity erase geometry unavailable.
+ * @retval -EBUSY Card lock unavailable.
+ * @retval -ETIMEDOUT Erase did not finish within the device timeout.
+ * @retval -EIO Card reported an error.
+ * @return Other negative error code from the host controller.
+ */
+int mmc_erase_blocks(struct sd_card *card, uint32_t start_block, uint32_t num_blocks);
+
+/**
  * @brief Get I/O control data from MMC card
  *
  * Sends I/O control commands to MMC card.

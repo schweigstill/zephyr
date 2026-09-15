@@ -873,6 +873,24 @@ unmount_err:
 	return rc;
 }
 
+/* Keep mount registration stable while raw media metadata is replaced. */
+int fs_maintenance_begin(void)
+{
+	if (k_mutex_lock(&mutex, K_NO_WAIT) != 0) {
+		return -EBUSY;
+	}
+	if (!sys_dlist_is_empty(&fs_mnt_list)) {
+		k_mutex_unlock(&mutex);
+		return -EBUSY;
+	}
+	return 0;
+}
+
+int fs_maintenance_end(void)
+{
+	return k_mutex_unlock(&mutex);
+}
+
 int fs_readmount(int *index, const char **name)
 {
 	sys_dnode_t *node;

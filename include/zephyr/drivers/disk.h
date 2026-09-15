@@ -108,6 +108,8 @@ struct disk_info {
 	const struct device *dev;
 	/** Internally used disk reference count */
 	uint16_t refcnt;
+	/** Serialize transfers, reference changes and exclusive maintenance. */
+	struct k_mutex mutex;
 };
 
 /**
