@@ -172,7 +172,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: 049f33f97a80912da7136c33527c8254fab3d6c8
+      revision: dff4fbbdd48f017e25a8d9da80a75e0c2904a38d
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -203,7 +203,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 2bbc7efdd88e2f89ea1b928cf9862b0bf5415a38
+      revision: cd19121a7bb887eebd1ccab71e70578a56fe22c7
       path: modules/hal/nordic
       groups:
         - hal
@@ -213,7 +213,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 11340dae1c61ae2b979e708cbaf6cb7aa102b5e2
+      revision: d72451be385dcbda0df04a73bc862c6708ed77a3
       path: modules/hal/nxp
       groups:
         - hal
@@ -235,7 +235,7 @@ manifest:
         - hal
     - name: hal_renesas
       path: modules/hal/renesas
-      revision: c7bf2092a0d6b26a1113689579bd2255b20c54c1
+      revision: 6371585791666cb8f8958e989e2e98519070c6b0
       groups:
         - hal
     - name: hal_rpi_pico
@@ -249,7 +249,7 @@ manifest:
       groups:
         - hal
     - name: hal_silabs
-      revision: 1093933f15c4ad606059441a96b1433d53df1a84
+      revision: 0c970a3e71bac9e7ce93e6467cb3903664b9b6c9
       path: modules/hal/silabs
       groups:
         - hal
@@ -259,7 +259,7 @@ manifest:
       groups:
         - hal
     - name: hal_stm32
-      revision: 9e579a021d6ed794a7c2a4777a4c5be552769035
+      revision: 3df0b07080a343dd5d6bd14b391d621e9dee99e7
       path: modules/hal/stm32
       groups:
         - hal
@@ -295,7 +295,7 @@ manifest:
         - hal
     - name: hostap
       path: modules/lib/hostap
-      revision: 4f141f443d66cfa06269edc1bcf213e86136d0e6
+      revision: 63a13bed13fcee519496e855488610452d23746c
     - name: liblc3
       revision: 48bbd3eacd36e99a57317a0a4867002e0b09e183
       path: modules/lib/liblc3
@@ -348,7 +348,7 @@ manifest:
       revision: 5499fd4c9a478f8139eeb07a82c3b4468d6067f7
       path: modules/lib/nanopb
     - name: net-tools
-      revision: 2104d8a33fe104559ff5c22793247926a714985e
+      revision: 77b4cf88ea397581ecf539669a1e41c391916daf
       path: tools/net-tools
       groups:
         - tools

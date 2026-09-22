@@ -1232,6 +1232,7 @@ static void uart_stm32_irq_callback_set(const struct device *dev,
 					void *cb_data)
 {
 	struct uart_stm32_data *data = dev->data;
+	unsigned int key = irq_lock();
 
 	data->user_cb = cb;
 	data->user_data = cb_data;
@@ -1240,6 +1241,8 @@ static void uart_stm32_irq_callback_set(const struct device *dev,
 	data->async_cb = NULL;
 	data->async_user_data = NULL;
 #endif
+
+	irq_unlock(key);
 }
 
 #endif /* CONFIG_UART_INTERRUPT_DRIVEN */
@@ -1455,7 +1458,7 @@ static void uart_stm32_isr(const struct device *dev)
 	 * the whole ISR sees the same status regardless of
 	 * any hardware event that may happen.
 	 */
-	const bool tx_complete = LL_USART_IsEnabledIT_TC(usart) && LL_USART_IsActiveFlag_TC(usart);
+	bool tx_complete = LL_USART_IsEnabledIT_TC(usart) && LL_USART_IsActiveFlag_TC(usart);
 #endif
 
 #ifdef CONFIG_PM
@@ -1467,6 +1470,12 @@ static void uart_stm32_isr(const struct device *dev)
 			LL_USART_DisableIT_TC(usart);
 			data->tx_poll_stream_on = false;
 			uart_stm32_pm_policy_state_lock_put(dev);
+			/* This TC belonged to the poll stream and is now handled.
+			 * Clear it so the async branch below does not treat it as
+			 * an async TX completion and release the PM constraint a
+			 * second time, which underflows the policy lock count.
+			 */
+			tx_complete = false;
 		}
 		/* Stream transmission was either async or IRQ based,
 		 * constraint will be released at the same time TC IT
@@ -1573,6 +1582,7 @@ static int uart_stm32_async_callback_set(const struct device *dev,
 					 void *user_data)
 {
 	struct uart_stm32_data *data = dev->data;
+	unsigned int key = irq_lock();
 
 	data->async_cb = callback;
 	data->async_user_data = user_data;
@@ -1581,6 +1591,8 @@ static int uart_stm32_async_callback_set(const struct device *dev,
 	data->user_cb = NULL;
 	data->user_data = NULL;
 #endif
+
+	irq_unlock(key);
 
 	return 0;
 }

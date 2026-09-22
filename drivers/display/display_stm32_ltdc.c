@@ -294,8 +294,6 @@ static void stm32_ltdc_get_capabilities(const struct device *dev,
 {
 	struct display_stm32_ltdc_data *data = dev->data;
 
-	memset(capabilities, 0, sizeof(struct display_capabilities));
-
 	capabilities->x_resolution = data->hltdc.LayerCfg[0].WindowX1 -
 				     data->hltdc.LayerCfg[0].WindowX0;
 	capabilities->y_resolution = data->hltdc.LayerCfg[0].WindowY1 -
@@ -797,7 +795,7 @@ static DEVICE_API(display, stm32_ltdc_display_api) = {
 
 #if DT_INST_NODE_HAS_PROP(0, ext_sdram)
 #define FRAME_BUFFER_SECTION	\
-	Z_GENERIC_SECTION(LINKER_DT_NODE_REGION_NAME(DT_INST_PHANDLE(0, ext_sdram)))
+	Z_GENERIC_SECTION(LINKER_DT_NODE_REGION_NAME_TOKEN(DT_INST_PHANDLE(0, ext_sdram)))
 #else
 #define FRAME_BUFFER_SECTION
 #endif /* DT_INST_NODE_HAS_PROP(0, ext_sdram) */

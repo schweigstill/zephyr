@@ -723,7 +723,6 @@ Bluetooth HCI:
   maintainers:
     - jhedberg
   collaborators:
-    - alwa-nordic
     - hermabe
     - Thalley
     - sjanc
@@ -750,7 +749,6 @@ Bluetooth Host:
   maintainers:
     - jhedberg
   collaborators:
-    - alwa-nordic
     - hermabe
     - sjanc
     - Thalley
@@ -2530,6 +2528,7 @@ Documentation Infrastructure:
     - SeppoTakalo
     - zafersn
     - wkhadgar
+    - JordanYates
   files:
     - drivers/modem/
     - tests/drivers/build_all/modem/
@@ -3259,7 +3258,8 @@ Espressif Platforms:
     - wmrsouza
     - tmedicci
   files:
-    - drivers/*/*esp32*.c
+    - drivers/*/*esp32*
+    - drivers/*/*/*esp32*
     - boards/espressif/
     - cmake/emu/espressif_qemu.cmake
     - cmake/emu/espressif_qemu/
@@ -3515,6 +3515,27 @@ ITE Platforms:
   labels:
     - "platform: ITE"
 
+Infineon AURIX Platforms:
+  status: maintained
+  maintainers:
+    - go2sh
+    - parthitce
+    - ssekar15
+  files:
+    - soc/qemu/tricore/
+    - boards/qemu/tricore/
+    - drivers/*/*aurix*
+    - include/zephyr/drivers/*/*aurix*
+    - dts/bindings/*/infineon,asclin*
+    - dts/bindings/*/infineon,aurix*
+    - dts/bindings/*/infineon,tc*
+    - dts/tricore/
+  labels:
+    - "platform: Infineon AURIX"
+  description: >-
+    Infineon AURIX TriCore SoC family (TC3x, TC4x), boards, devicetree
+    and related drivers.
+
 Infineon Platforms:
   status: maintained
   maintainers:
@@ -3535,7 +3556,9 @@ Infineon Platforms:
     - boards/cypress/
     - boards/infineon/
     - drivers/*/*infineon*
+    - drivers/*/*/*infineon*
     - drivers/*/*xmc*
+    - drivers/*/*/*xmc*
     - drivers/sensor/infineon/
     - drivers/wifi/infineon/
     - dts/arm/infineon/
@@ -4250,6 +4273,20 @@ Modem:
   tests:
     - modem
     - sample.net.cellular_modem
+
+Multimedia Pipeline:
+  status: maintained
+  maintainers:
+    - ngphibang
+  files:
+    - doc/services/mpipe/
+    - include/zephyr/mpipe/
+    - subsys/mpipe/
+    - tests/subsys/mpipe/
+  labels:
+    - "area: Multimedia Pipeline"
+  tests:
+    - mpipe
 
 NEORV32 platform:
   status: maintained
@@ -5097,8 +5134,9 @@ Nuvoton Numicro Numaker Platforms:
     - dts/arm/nuvoton/m*
     - dts/bindings/*/*numicro*
     - dts/bindings/*/*numaker*
-    - drivers/*/*_numicro*
-    - drivers/*/*_numaker*
+    - drivers/*/*numicro*
+    - drivers/*/*numaker*
+    - drivers/*/*/*numaker*
   labels:
     - "platform: Nuvoton Numicro Numaker"
 
@@ -5687,6 +5725,11 @@ Rockchip Platforms:
     - dts/arm/rockchip/
     - dts/arm64/rockchip/
     - soc/rockchip/
+    - drivers/*/*rk35*
+    - drivers/*/*rockchip*
+    - drivers/*/*/*rockchip*
+    - dts/bindings/*/rockchip,*
+    - include/zephyr/dt-bindings/*/*rk35*
   labels:
     - "platform: Rockchip"
 
@@ -6181,6 +6224,7 @@ TI AM13 Platforms:
     - glneo
   collaborators:
     - s-m33r
+    - Aman-Lachhiramka-ti
   files:
     - boards/ti/*am13*/
     - dts/arm/ti/am13*/
@@ -6469,6 +6513,20 @@ Trenz Electronic Platforms:
     - "platform: Trenz Electronic"
   description: >-
     Trenz Electronic development boards.
+
+TriCore arch:
+  status: maintained
+  maintainers:
+    - go2sh
+    - parthitce
+    - ssekar15
+  files:
+    - arch/tricore/
+    - cmake/compiler/*/target_tricore.cmake
+    - cmake/toolchain/tricore/
+    - include/zephyr/arch/tricore/
+  labels:
+    - "area: TriCore"
 
 Twister:
   status: maintained
@@ -7693,6 +7751,8 @@ West:
   status: maintained
   maintainers:
     - d3zd3z
+  collaborators:
+    - kurtjd
   files: []
   labels:
     - "area: Rust"

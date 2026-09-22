@@ -4,13 +4,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config MODEM_HL78XX
-	bool "HL78XX modem driver"
+	bool "HL78XX modem driver [EXPERIMENTAL]"
 	select MODEM_MODULES
 	select MODEM_CHAT
 	select MODEM_PIPE
 	select MODEM_PIPELINK
 	select MODEM_BACKEND_UART
-	select RING_BUFFER
 	select MODEM_SOCKET
 	select NET_OFFLOAD
 	select MODEM_CONTEXT
